@@ -1,0 +1,147 @@
+system:
+  name: "Black Box Swarm"
+  version: "0.1.0"
+  environment: "development"
+
+# Agent model assignments
+agents:
+  # High-reasoning agents (gpt-5.4)
+  command:
+    name: "Command"
+    model: "openai/gpt-5.4"
+    temperature: 0.7
+    max_tokens: 1000
+    timeout: 30
+
+  aura:
+    name: "Aura"
+    model: "openai/gpt-5.4"
+    temperature: 0.9
+    max_tokens: 800
+    timeout: 30
+
+  probe:
+    name: "Probe"
+    model: "openai/gpt-5.4"
+    temperature: 0.6
+    max_tokens: 400
+    timeout: 20
+
+  # Fast agents (gpt-5.4-nano)
+  sieve:
+    name: "Sieve"
+    model: "openai/gpt-5.4-nano"
+    temperature: 0.5
+    max_tokens: 300
+    timeout: 10
+
+  sensor:
+    name: "Sensor"
+    model: "openai/gpt-5.4-nano"
+    temperature: 0.5
+    max_tokens: 200
+    timeout: 10
+
+  flash:
+    name: "Flash"
+    model: "openai/gpt-5.4-nano"
+    temperature: 0.0
+    max_tokens: 100
+    timeout: 5
+
+  vault:
+    name: "Vault"
+    model: "openai/gpt-5.4-nano"
+    temperature: 0.0
+    max_tokens: 200
+    timeout: 5
+
+  shield:
+    name: "Shield"
+    model: "openai/gpt-5.4-nano"
+    temperature: 0.2
+    max_tokens: 150
+    timeout: 10
+
+  verdict:
+    name: "Verdict"
+    model: "openai/gpt-5.4-nano"
+    temperature: 0.3
+    max_tokens: 200
+    timeout: 10
+
+  parser:
+    name: "Parser"
+    model: "openai/gpt-5.4-nano"
+    temperature: 0.3
+    max_tokens: 1000
+    timeout: 20
+
+# OpenRouter configuration
+openrouter:
+  api_key_env: "OPENROUTER_API_KEY"
+  base_url: "https://openrouter.ai/api/v1"
+  retry_attempts: 3
+  retry_delay: 1.0
+
+# Memory system configuration
+memory:
+  db_url: "sqlite:///./data/ledger.db"
+  vector_store_path: "./data/chroma"
+  cooldown_hours: 24
+  max_search_results: 5
+
+  # Similarity thresholds (adjusted by p_tangent)
+  thresholds:
+    user_fact: 0.9
+    user_story: 0.7
+    ai_logic: 0.8
+    task_goal: 0.85
+    preference: 0.75
+    relationship: 0.8
+
+# Safety configuration
+safety:
+  default_profile: "balanced"
+  profiles:
+    strict:
+      description: "Block harmful, illegal, or offensive content"
+      filters:
+        - violence
+        - illegal_activity
+        - hate_speech
+        - self_harm
+    balanced:
+      description: "Allow mature topics with context"
+      filters:
+        - illegal_activity
+        - extreme_violence
+        - self_harm
+    experimental:
+      description: "Minimal filtering"
+      filters:
+        - illegal_activity
+
+# Associative behavior
+associative:
+  default_p_tangent: 0.5
+  aura_activation_threshold: 0.7
+  mood_modifiers:
+    jovial: 0.2
+    curious: 0.1
+    neutral: 0.0
+    focused: -0.1
+    frustrated: -0.2
+    hurried: -0.2
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "json"
+  output: "stdout"
+  file: "./logs/swarm.log"
+
+# Metrics configuration
+metrics:
+  enabled: false
+  port: 9090
