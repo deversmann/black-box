@@ -24,12 +24,37 @@ st.set_page_config(
 )
 
 
-@st.cache_resource
-def init_swarm() -> SwarmOrchestrator:
-    """Initialize the swarm orchestrator (cached)."""
+def get_swarm() -> SwarmOrchestrator:
+    """Get a fresh swarm orchestrator for each request.
+
+    Note: We don't cache this because the httpx client needs to be
+    created in the same event loop where it will be used.
+    """
     config = load_config()
     client = OpenRouterClient()
     return SwarmOrchestrator(config, client)
+
+
+async def process_message(prompt: str, session_id: str) -> dict:
+    """Process a message through the swarm.
+
+    Args:
+        prompt: User message
+        session_id: Session identifier
+
+    Returns:
+        Result dictionary from swarm processing
+    """
+    orchestrator = get_swarm()
+    try:
+        result = await orchestrator.process(
+            user_input=prompt,
+            session_id=session_id,
+        )
+        return result
+    finally:
+        # Clean up the httpx client
+        await orchestrator.client.close()
 
 
 def main() -> None:
@@ -86,18 +111,13 @@ def main() -> None:
         # Process through swarm
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                orchestrator = init_swarm()
-
-                # Run async process in sync context
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                result = loop.run_until_complete(
-                    orchestrator.process(
-                        user_input=prompt,
+                # Run async process - asyncio.run() properly manages the event loop
+                result = asyncio.run(
+                    process_message(
+                        prompt=prompt,
                         session_id=st.session_state.session_id,
                     )
                 )
-                loop.close()
 
                 # Get response
                 response = result.get("final_response") or result.get("draft_response") or "I apologize, but I wasn't able to generate a response. Please try again."
