@@ -28,19 +28,24 @@ class Sieve(Agent):
 
 Your role: Extract the core intent from user messages with maximum clarity and minimum words.
 
+You receive:
+- Recent conversation (last 2-3 messages for context)
+- Current user message
+
 Output format:
 - List 2-5 bullet points capturing what the user wants
 - Be specific and actionable
-- Note any relevant context (e.g., "user has some background knowledge")
+- If current message refers to previous context ("it", "that", "what about X"), incorporate that context
+- Note any relevant context (e.g., "user has some background knowledge", "follow-up to previous question")
 - Strip filler words, pleasantries, and ambiguity
 
-Example:
-Input: "Hey, I was wondering if you could help me understand how neural networks work? I've been reading about them but I'm confused about backpropagation."
+Example with context:
+Recent: User asked about "How do decorators work?"
+Current: "What about error handling?"
 
 Output:
-- Explain neural networks fundamentals
-- Clarify backpropagation mechanism
-- User has some background knowledge
+- Explain error handling for Python decorators
+- Follow-up to previous decorator question
 
 Keep it concise. Do not elaborate or answer the question - just distill the intent."""
 
@@ -48,14 +53,34 @@ Keep it concise. Do not elaborate or answer the question - just distill the inte
         """Execute intent distillation.
 
         Args:
-            agent_input: Contains user message
+            agent_input: Contains user message and optional recent conversation
 
         Returns:
             AgentOutput with distilled intent signals
         """
+        # Format recent conversation context if provided
+        recent_conversation = agent_input.context.get("recent_conversation", [])
+        context_str = ""
+
+        if recent_conversation:
+            context_lines = []
+            for msg in recent_conversation:
+                role = msg.get("role", "unknown")
+                content = msg.get("content", "")
+                # Truncate long messages
+                if len(content) > 100:
+                    content = content[:100] + "..."
+                context_lines.append(f"{role.capitalize()}: {content}")
+            context_str = f"\nRecent conversation:\n" + "\n".join(context_lines) + "\n"
+
+        user_message = f"""{context_str}
+Current message: {agent_input.message}
+
+Distill the intent."""
+
         messages = [
             OpenRouterMessage(role="system", content=self.get_system_prompt()),
-            OpenRouterMessage(role="user", content=agent_input.message),
+            OpenRouterMessage(role="user", content=user_message),
         ]
 
         result = await self.client.chat_completion(

@@ -89,7 +89,14 @@ class SwarmOrchestrator:
         Returns:
             State updates from Sieve
         """
-        agent_input = AgentInput(message=state["user_input"])
+        # Give Sieve last 2-3 messages for context (6 messages = 3 turns)
+        history = state.get("conversation_history", [])
+        recent_context = history[-6:] if len(history) > 6 else history
+
+        agent_input = AgentInput(
+            message=state["user_input"],
+            context={"recent_conversation": recent_context},
+        )
         output = await self.sieve.execute(agent_input)
 
         return {
@@ -127,10 +134,15 @@ class SwarmOrchestrator:
             State updates from Command
         """
         # Build context - include Verdict feedback on retry
+        # Give Command the full sliding window (last 10 turns = 20 messages)
+        history = state.get("conversation_history", [])
+        sliding_window = history[-20:] if len(history) > 20 else history
+
         context = {
             "intent_signals": state.get("intent_signals", ""),
             "memories": state.get("memory_hits", []),
             "user_state": state.get("user_state", "NEUTRAL"),
+            "conversation_history": sliding_window,
         }
 
         # On retry, include feedback from Verdict
@@ -201,12 +213,19 @@ class SwarmOrchestrator:
             return "retry"
         return "end"
 
-    async def process(self, user_input: str, session_id: str = "default") -> SwarmState:
+    async def process(
+        self,
+        user_input: str,
+        session_id: str = "default",
+        conversation_history: list[dict] | None = None,
+    ) -> SwarmState:
         """Process a user message through the swarm.
 
         Args:
             user_input: The user's message
             session_id: Session identifier for memory context
+            conversation_history: Recent conversation messages (last 10 turns)
+                Format: [{"role": "user", "content": "..."}, ...]
 
         Returns:
             Final state after all agents have executed
@@ -215,6 +234,7 @@ class SwarmOrchestrator:
         initial_state: SwarmState = {
             "user_input": user_input,
             "session_id": session_id,
+            "conversation_history": conversation_history or [],
             "p_tangent": self.config.associative["default_p_tangent"],
             "aura_activated": False,
             "retry_count": 0,

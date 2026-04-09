@@ -14,6 +14,7 @@ class SwarmState(TypedDict, total=False):
     # Input (required)
     user_input: str
     session_id: str
+    conversation_history: list[dict] | None  # Recent messages for context
 
     # Ingress outputs
     intent_signals: str | None  # From Sieve

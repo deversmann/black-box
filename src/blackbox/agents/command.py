@@ -59,6 +59,7 @@ You're chatting, not teaching a class."""
         memories = agent_input.context.get("memories", [])
         user_state = agent_input.context.get("user_state", "NEUTRAL")
         verdict_feedback = agent_input.context.get("verdict_feedback", "")
+        conversation_history = agent_input.context.get("conversation_history", [])
 
         # Format memory context
         memory_context = ""
@@ -68,16 +69,36 @@ You're chatting, not teaching a class."""
             ]
             memory_context = "\n".join(memory_items)
 
-        # Construct the prompt
-        user_message = f"""User Input: {agent_input.message}
+        # Format conversation history (sliding window)
+        history_context = ""
+        if conversation_history:
+            history_lines = []
+            for msg in conversation_history:
+                role = msg.get("role", "unknown")
+                content = msg.get("content", "")
+                # Truncate very long messages
+                if len(content) > 150:
+                    content = content[:150] + "..."
+                history_lines.append(f"{role.capitalize()}: {content}")
+            history_context = "\n".join(history_lines)
 
-Intent Signals:
+        # Construct the prompt - Context Sandwich Structure:
+        # 1. System Prompt (already sent separately)
+        # 2. Core Intent (pinned)
+        # 3. Flash Memories
+        # 4. Sliding Window
+        # 5. Active Workspace (current turn)
+        user_message = f"""[Core Intent - Pinned]
 {intent_signals}
 
-Relevant Memories:
-{memory_context if memory_context else "No relevant memories found"}
+[Long-term Context - Flash Memories]
+{memory_context if memory_context else "No relevant memories"}
 
-User State: {user_state}"""
+[Recent Conversation - Last 10 turns]
+{history_context if history_context else "No conversation history"}
+
+[Active Workspace - Current Turn]
+User ({user_state}): {agent_input.message}"""
 
         # On retry, include Verdict's feedback
         if verdict_feedback:

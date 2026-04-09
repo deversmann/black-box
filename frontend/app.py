@@ -35,12 +35,15 @@ def get_swarm() -> SwarmOrchestrator:
     return SwarmOrchestrator(config, client)
 
 
-async def process_message(prompt: str, session_id: str) -> dict:
+async def process_message(
+    prompt: str, session_id: str, conversation_history: list[dict]
+) -> dict:
     """Process a message through the swarm.
 
     Args:
         prompt: User message
         session_id: Session identifier
+        conversation_history: Recent conversation messages for context
 
     Returns:
         Result dictionary from swarm processing
@@ -50,6 +53,7 @@ async def process_message(prompt: str, session_id: str) -> dict:
         result = await orchestrator.process(
             user_input=prompt,
             session_id=session_id,
+            conversation_history=conversation_history,
         )
         return result
     finally:
@@ -111,11 +115,16 @@ def main() -> None:
         # Process through swarm
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
+                # Get last 10 turns (20 messages) for sliding window
+                # Don't include the current message (it's passed separately)
+                history = st.session_state.messages[-20:] if len(st.session_state.messages) > 20 else st.session_state.messages
+
                 # Run async process - asyncio.run() properly manages the event loop
                 result = asyncio.run(
                     process_message(
                         prompt=prompt,
                         session_id=st.session_state.session_id,
+                        conversation_history=history,
                     )
                 )
 
