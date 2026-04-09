@@ -39,6 +39,13 @@ All notable changes to the Black Box Swarm project will be documented in this fi
   - Retry count properly incremented in state
   - Max 2 retries before giving up
 
+- **Sliding window conversation context**: 10-turn conversational memory
+  - Sieve gets last 3 turns for context-aware intent distillation
+  - Command gets full 10 turns for conversational flow
+  - Context sandwich structure: Intent → Memories → History → Current
+  - Handles follow-ups, pronouns ("it", "that"), and references
+  - No persistent memory yet (Phase 3) - session-only
+
 ### Configuration Changes
 
 #### Command Agent
