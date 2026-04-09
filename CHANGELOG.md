@@ -25,12 +25,19 @@ All notable changes to the Black Box Swarm project will be documented in this fi
   - .env file now properly loaded at startup
   - Improved error messages in start.sh
 
-- **Response length tuning**: Command now produces conversational responses
-  - Updated system prompt to emphasize concise, conversational style
-  - Reduced max_tokens from 1000 → 800 (~400-500 words)
-  - Added explicit length guidelines: 2-3 paragraphs by default
-  - Verdict now validates conciseness
-  - Responses expand only when user asks for detail/examples
+- **Conversational response tuning**: Complete prompt rewrite for natural conversation
+  - Command prompt rewritten: "You're chatting, not teaching a class"
+  - Reduced max_tokens: 1000 → 500 (~300 words)
+  - Default: 3-4 sentences for simple questions
+  - Explicit bad/good examples in prompt
+  - Token limit awareness built into agent
+  
+- **Truncation detection & handling**: Automatic retry on cutoff
+  - Verdict now detects mid-sentence cutoffs (missing punctuation)
+  - Verdict feedback passed to Command on retry
+  - Command receives specific guidance on what to fix
+  - Retry count properly incremented in state
+  - Max 2 retries before giving up
 
 ### Configuration Changes
 
