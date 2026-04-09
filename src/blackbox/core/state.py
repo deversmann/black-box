@@ -31,6 +31,7 @@ class SwarmState(TypedDict, total=False):
     final_response: str | None
     validation_passed: bool
     safety_passed: bool
+    verdict_feedback: str | None  # Feedback from Verdict for retry
 
     # Metadata
     p_tangent: float  # Slider + mood modifier

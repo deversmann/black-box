@@ -10,7 +10,7 @@ agents:
     name: "Command"
     model: "openai/gpt-5.4"
     temperature: 0.7
-    max_tokens: 800  # ~400-500 words for conversational responses
+    max_tokens: 500  # ~300 words - forces brevity, prevents cutoffs
     timeout: 30
 
   aura:

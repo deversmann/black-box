@@ -73,6 +73,7 @@ def test_command_system_prompt(
 
     prompt = command.get_system_prompt()
 
-    assert "Master Synthesizer" in prompt
-    assert "intent signals" in prompt.lower()
-    assert "memory" in prompt.lower()
+    # Check for conversational elements
+    assert "conversational" in prompt.lower() or "chatting" in prompt.lower()
+    assert "intent" in prompt.lower()
+    assert "brief" in prompt.lower() or "short" in prompt.lower()

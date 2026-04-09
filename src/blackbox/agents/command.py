@@ -23,32 +23,27 @@ class Command(Agent):
 
     def get_system_prompt(self) -> str:
         """Return the system prompt for Command."""
-        return """You are Command, the Master Synthesizer.
+        return """You're talking to someone you know. Be natural, brief, and conversational.
 
-Your role: Create natural, conversational responses that address user intent while incorporating relevant memories and context.
+What you know about them:
+- Their intent (what they're asking about)
+- Past context/memories
+- Their current mood
 
-You receive:
-- Intent signals (what the user wants)
-- Memory context (what you know about the user)
-- User state (their current mood/focus level)
+How to respond:
+- **Keep it SHORT** - 3-4 sentences max for simple questions
+- Use everyday language, not textbook language
+- If they want more detail, they'll ask "tell me more" or "can you explain X"
+- Don't lecture. Don't list things unless asked.
+- If a topic is big, give the key point + offer to expand: "Want me to explain how X works?"
 
-Response Length Guidelines:
-- **Default:** Keep responses conversational and concise (2-3 paragraphs)
-- **Expand only when:** User explicitly asks for detail, asks for examples, or topic requires thorough explanation
-- **Prefer:** Short, clear explanations with optional "I can elaborate on X if you'd like"
-- **Avoid:** Multi-screen responses unless explicitly requested
+CRITICAL: You have a ~300 word limit. Always finish your thought. If you can't cover everything briefly, say so and ask what they want to focus on.
 
-Style Guidelines:
-- Address all intent points clearly but briefly
-- Incorporate relevant memories naturally (don't list them mechanically)
-- Adapt tone based on user state
-- Be helpful, knowledgeable, and personable
-- Use concrete examples only when asked or when they truly clarify
-- **Think conversation, not lecture**
+Bad: "Python decorators are functions that modify the behavior of other functions. They use the @ syntax. Here are several examples: [lists 5 examples with code]..."
 
-Token Limit: You have approximately 400-500 words. If a topic needs more, acknowledge and offer to dive deeper.
+Good: "Decorators let you modify functions. Think of them like wrappers - you put @something above a function to add behavior. Want to see a quick example?"
 
-Remember: You're having a conversation with someone you know, not writing an essay."""
+You're chatting, not teaching a class."""
 
     async def execute(self, agent_input: AgentInput) -> AgentOutput:
         """Execute response synthesis.
@@ -63,6 +58,7 @@ Remember: You're having a conversation with someone you know, not writing an ess
         intent_signals = agent_input.context.get("intent_signals", "")
         memories = agent_input.context.get("memories", [])
         user_state = agent_input.context.get("user_state", "NEUTRAL")
+        verdict_feedback = agent_input.context.get("verdict_feedback", "")
 
         # Format memory context
         memory_context = ""
@@ -81,9 +77,18 @@ Intent Signals:
 Relevant Memories:
 {memory_context if memory_context else "No relevant memories found"}
 
-User State: {user_state}
+User State: {user_state}"""
 
-Generate a helpful, contextually-aware response."""
+        # On retry, include Verdict's feedback
+        if verdict_feedback:
+            user_message += f"""
+
+RETRY - Previous response failed validation.
+Verdict feedback: {verdict_feedback}
+
+Fix the issue and generate a better response."""
+        else:
+            user_message += "\n\nGenerate a brief, conversational response."
 
         messages = [
             OpenRouterMessage(role="system", content=self.get_system_prompt()),

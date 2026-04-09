@@ -126,13 +126,20 @@ class SwarmOrchestrator:
         Returns:
             State updates from Command
         """
+        # Build context - include Verdict feedback on retry
+        context = {
+            "intent_signals": state.get("intent_signals", ""),
+            "memories": state.get("memory_hits", []),
+            "user_state": state.get("user_state", "NEUTRAL"),
+        }
+
+        # On retry, include feedback from Verdict
+        if state.get("retry_count", 0) > 0:
+            context["verdict_feedback"] = state.get("verdict_feedback", "")
+
         agent_input = AgentInput(
             message=state["user_input"],
-            context={
-                "intent_signals": state.get("intent_signals", ""),
-                "memories": state.get("memory_hits", []),
-                "user_state": state.get("user_state", "NEUTRAL"),
-            },
+            context=context,
         )
         output = await self.command.execute(agent_input)
 
@@ -163,12 +170,15 @@ class SwarmOrchestrator:
 
         # If validation passed, set final response
         final_response = None
+        verdict_feedback = output.result  # Store feedback for retry
+
         if validation_passed:
             final_response = state.get("draft_response", "")
 
         return {
             "validation_passed": validation_passed,
             "final_response": final_response,
+            "verdict_feedback": verdict_feedback,
             "agents_involved": state.get("agents_involved", []) + ["Verdict"],
         }
 
@@ -186,6 +196,8 @@ class SwarmOrchestrator:
         max_retries = 2
 
         if not validation_passed and retry_count < max_retries:
+            # Increment retry count for next iteration
+            state["retry_count"] = retry_count + 1
             return "retry"
         return "end"
 

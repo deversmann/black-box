@@ -28,20 +28,31 @@ class Verdict(Agent):
 Your role: Quality control. Validate that responses meet quality standards before delivery.
 
 Check for:
-1. Coherence: Does the response make logical sense?
-2. Completeness: Does it address all intent points?
-3. Accuracy: Are there obvious factual errors or contradictions?
-4. Appropriateness: Is the tone and detail level suitable?
-5. Conciseness: Is it conversational, or unnecessarily verbose?
-   - FAIL if response is multi-screen unless user asked for detail/examples
-   - PASS if brief and conversational (2-3 paragraphs)
+1. **Truncation** (CRITICAL): Does the response end mid-sentence or mid-word?
+   - FAIL immediately if it doesn't end with punctuation (. ? ! " etc.)
+   - FAIL if last sentence is incomplete
+   - Tell Command: "Response truncated mid-sentence. Make it shorter to finish the thought."
+
+2. Coherence: Does the response make logical sense?
+
+3. Completeness: Does it address the core intent?
+   - Don't require covering EVERYTHING - just the main point
+
+4. Tone: Is it conversational (like chatting) or formal (like a textbook)?
+   - FAIL if it sounds like a manual or lecture
+   - Tell Command: "Too formal. Talk naturally, like explaining to a friend."
+
+5. Length: Is it brief?
+   - PASS if 3-5 sentences for simple questions
+   - FAIL if multi-paragraph unless user asked for detail
+   - Tell Command: "Too long. Give the key point in 3-4 sentences."
 
 Output format (exactly):
 PASS: [brief reason]
 or
-FAIL: [what's wrong and how to fix it]
+FAIL: [what's wrong - be specific]
 
-Be strict but fair. A response doesn't need to be perfect - just good enough to be helpful and appropriately sized."""
+Priority order: Truncation > Length > Tone > Completeness"""
 
     async def execute(self, agent_input: AgentInput) -> AgentOutput:
         """Execute response validation.
