@@ -2,12 +2,18 @@
 
 import asyncio
 from datetime import datetime
+from pathlib import Path
 
 import streamlit as st
+from dotenv import load_dotenv
 
 from blackbox.core.config import load_config
 from blackbox.core.orchestrator import SwarmOrchestrator
 from blackbox.models.client import OpenRouterClient
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 
 # Page configuration

@@ -27,12 +27,27 @@
    ```bash
    ./scripts/setup.sh
    ```
+   This will:
+   - Install all Python dependencies
+   - Create necessary directories (data/, logs/)
+   - Copy `.env.example` to `.env`
 
 3. **Configure your API key:**
    Edit `.env` and add your OpenRouter API key:
+   ```bash
+   # Option 1: Using nano
+   nano .env
+   
+   # Option 2: Using VS Code
+   code .env
    ```
-   OPENROUTER_API_KEY=sk-or-v1-your-key-here
+   
+   Replace `your_api_key_here` with your actual key:
    ```
+   OPENROUTER_API_KEY=sk-or-v1-your-actual-key-here
+   ```
+   
+   **Get an API key:** https://openrouter.ai/keys
 
 ## Running the Application
 
@@ -162,10 +177,24 @@ pip install -e ".[dev]"
 ```
 
 ### "OPENROUTER_API_KEY not found"
-Make sure `.env` exists and contains:
+This means the `.env` file is missing or not properly configured.
+
+**Fix:**
+```bash
+# 1. Copy the example file
+cp .env.example .env
+
+# 2. Edit and add your API key
+nano .env
+
+# Make sure it looks like this:
+OPENROUTER_API_KEY=sk-or-v1-your-actual-key-here
+
+# 3. Verify it's set
+grep OPENROUTER_API_KEY .env
 ```
-OPENROUTER_API_KEY=your_key_here
-```
+
+Get an API key at: https://openrouter.ai/keys
 
 ### Tests failing
 ```bash
