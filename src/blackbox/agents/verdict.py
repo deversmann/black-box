@@ -32,13 +32,16 @@ Check for:
 2. Completeness: Does it address all intent points?
 3. Accuracy: Are there obvious factual errors or contradictions?
 4. Appropriateness: Is the tone and detail level suitable?
+5. Conciseness: Is it conversational, or unnecessarily verbose?
+   - FAIL if response is multi-screen unless user asked for detail/examples
+   - PASS if brief and conversational (2-3 paragraphs)
 
 Output format (exactly):
 PASS: [brief reason]
 or
 FAIL: [what's wrong and how to fix it]
 
-Be strict but fair. A response doesn't need to be perfect - just good enough to be helpful."""
+Be strict but fair. A response doesn't need to be perfect - just good enough to be helpful and appropriately sized."""
 
     async def execute(self, agent_input: AgentInput) -> AgentOutput:
         """Execute response validation.
