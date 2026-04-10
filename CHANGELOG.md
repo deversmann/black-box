@@ -46,6 +46,13 @@ All notable changes to the Black Box Swarm project will be documented in this fi
   - Handles follow-ups, pronouns ("it", "that"), and references
   - No persistent memory yet (Phase 3) - session-only
 
+- **Dynamic detail level detection**: Response length adapts to user request
+  - Sieve detects: BRIEF (default), DETAILED, COMPREHENSIVE
+  - Command adjusts token budget: 500 / 800 / 1200 tokens
+  - Triggers: "in detail", "with examples", "complete guide", etc.
+  - Verdict validates against expected detail level
+  - Brief by default, detailed when requested
+
 ### Configuration Changes
 
 #### Command Agent
