@@ -59,8 +59,34 @@ Multi-agent AI system for a personal learning assistant that learns, remembers, 
 ### Next Steps
 **Phase 2 Wave 2: Vault + Probe**
 Add remaining validation and data agents:
-1. Vault (DB queries - mock initially)
-2. Probe (logic validation)
+1. Vault (DB queries - mock initially) - [Issue #1](https://github.com/deversmann/black-box/issues/1)
+2. Probe (logic validation) - [Issue #2](https://github.com/deversmann/black-box/issues/2)
+
+## GitHub Project Management
+
+**Repository:** https://github.com/deversmann/black-box
+
+**Milestones:**
+- [Phase 2: Complete Agent Suite](https://github.com/deversmann/black-box/milestone/2) (In Progress)
+- [Phase 3: The Ledger - Memory System](https://github.com/deversmann/black-box/milestone/3)
+- [Phase 4: Production Readiness](https://github.com/deversmann/black-box/milestone/4)
+- [Phase 5: Advanced Features](https://github.com/deversmann/black-box/milestone/5)
+
+**Wave Labels:**
+- `phase-2-wave-1` - Shield & Sensor (COMPLETE)
+- `phase-2-wave-2` - Vault & Probe (NEXT)
+- `phase-2-wave-3` - Aura & Parser
+
+**Open Issues:**
+- [#1 Add Vault agent](https://github.com/deversmann/black-box/issues/1) - Wave 2
+- [#2 Add Probe agent](https://github.com/deversmann/black-box/issues/2) - Wave 2
+- [#3 Add Aura agent](https://github.com/deversmann/black-box/issues/3) - Wave 3
+- [#4 Add Parser agent](https://github.com/deversmann/black-box/issues/4) - Wave 3
+
+**Access via gh CLI:**
+- List issues: `gh issue list --milestone "Phase 2: Complete Agent Suite"`
+- View issue: `gh issue view 1`
+- Create issue: `gh issue create --milestone 2 --label "phase-2-wave-2,agent"`
 
 ## Technology Stack (Final Decisions)
 - **Language:** Python 3.11+
@@ -243,14 +269,18 @@ The user (project creator):
 
 ## When User Returns
 
-**Phase 1 & 1.5 are complete!** They'll likely want to:
-1. Test the system thoroughly with various conversation patterns
-2. Begin Phase 2: Add remaining 7 agents
-3. Implement P(tangent) slider functionality
-4. Add Sensor for mood detection
-5. Implement intent lifecycle state machine
-6. Add metadata sidebar panel and enhanced status messages
-7. (Phase 4): LangGraph DAG visualization for execution flow
+**Phase 2 Wave 1 is complete!** Recent session (2026-04-10):
+- ✅ Fixed all UI/UX bugs (sidebar updates, ghost messages, p_tangent slider)
+- ✅ Added Sieve expansion continuation detection
+- ✅ Created GitHub milestones and issues for remaining work
+- ✅ Committed UI/UX fixes (commit 387f2af)
+
+**They'll likely want to:**
+1. Continue Phase 2 Wave 2: Vault + Probe agents
+   - [Issue #1: Add Vault agent](https://github.com/deversmann/black-box/issues/1)
+   - [Issue #2: Add Probe agent](https://github.com/deversmann/black-box/issues/2)
+2. Test the system with various conversation patterns
+3. Eventually: Wave 3 (Aura + Parser), then Phase 3 (The Ledger)
 
 **Remember:** 
 - User values detailed planning before coding
@@ -258,6 +288,7 @@ The user (project creator):
 - Emphasizes maintainability and extensibility
 - Building for personal use but plans to open source
 - Wants assistant to "get to know them" like a friend would
+- **Uses GitHub issues** for task tracking - check open issues before planning work
 
 ## Quick Reference: Phase 1 Critical Files
 
@@ -284,5 +315,5 @@ The user (project creator):
 
 ---
 
-**Last Session:** Completed comprehensive specification and documentation  
-**Next Session:** Begin Phase 1 implementation (Core Swarm MVP)
+**Last Session:** Phase 2 Wave 1 UI/UX bug fixes + GitHub project setup (2026-04-10)
+**Next Session:** Begin Phase 2 Wave 2 - Vault + Probe agents ([view issues](https://github.com/deversmann/black-box/milestone/2))

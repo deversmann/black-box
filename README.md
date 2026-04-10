@@ -4,7 +4,8 @@ A sophisticated multi-agent AI system designed as a personal learning assistant 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Status: Design Phase](https://img.shields.io/badge/status-design-orange.svg)]()
+[![Phase 2 Wave 1](https://img.shields.io/badge/status-Phase%202%20Wave%201%20Complete-green.svg)](https://github.com/deversmann/black-box/milestone/2)
+[![Issues](https://img.shields.io/github/issues/deversmann/black-box)](https://github.com/deversmann/black-box/issues)
 
 ## What is Black Box Swarm?
 
@@ -96,25 +97,46 @@ The **Aura** agent (storyteller) activates when `P(tangent) ≥ 0.7`, transformi
 - [x] Database schemas
 - [x] Configuration design
 
-### ✅ Phase 1: Core Swarm MVP (COMPLETE)
+### ✅ Phase 1: Core Swarm MVP (COMPLETE - 2026-04-09)
 **Goal:** Prove the swarm pattern works end-to-end with conversational intelligence
 
 **Agents:** Sieve → Flash (mock) → Command → Verdict
 
 **Delivered:**
 - ✅ LangGraph orchestration with conditional retry
-- ✅ OpenRouter integration (gpt-5.4 / gpt-5.4-nano)  
+- ✅ OpenRouter integration (gpt-4o / gpt-4o-mini)  
 - ✅ Streamlit chat interface with session tracking
 - ✅ Sliding window context (10 turns)
 - ✅ Detail level detection (BRIEF/DETAILED/COMPREHENSIVE)
 - ✅ Truncation handling with auto-retry
+- ✅ Real-time agent visualization with st.status
 - ✅ 23 tests passing, 87% coverage
 
-### 📋 Phase 2: Complete Agent Suite (Week 3-4)
-All 11 agents implemented with full personality system
-- 7 new agents: Shield, Sensor, Vault, Probe, Aura, Parser
-- P(tangent) calculation with mood modifiers
-- **UI enhancements:** Metadata sidebar panel + enhanced status messages
+### ✅ Phase 1.5: Agent Visualization (COMPLETE - 2026-04-09)
+**Delivered:**
+- ✅ Live progress display using LangGraph's astream()
+- ✅ Agent icons and descriptions in UI
+- ✅ Foundation for parallel agent visualization
+
+### 🔄 Phase 2: Complete Agent Suite (IN PROGRESS)
+**Goal:** All 11 agents implemented with full personality system
+
+#### ✅ Wave 1: Shield + Sensor (COMPLETE - 2026-04-10)
+- ✅ **Shield agent** - Two-pass safety validation (input + output)
+- ✅ **Sensor agent** - Mood detection and P(tangent) calculation
+- ✅ Parallel execution (Sieve + Sensor run concurrently)
+- ✅ Metadata sidebar panel (mood, P(tangent), detail level, safety profile)
+- ✅ P(tangent) slider integration
+- ✅ Sieve expansion continuation pattern detection
+- ✅ 43 tests passing, 87% coverage
+
+#### 📋 Wave 2: Vault + Probe (NEXT - [View Issues](https://github.com/deversmann/black-box/milestone/2))
+- [ ] **Vault agent** - Relational database queries ([#1](https://github.com/deversmann/black-box/issues/1))
+- [ ] **Probe agent** - Logic validation with veto power ([#2](https://github.com/deversmann/black-box/issues/2))
+
+#### 📋 Wave 3: Aura + Parser (PLANNED - [View Issues](https://github.com/deversmann/black-box/milestone/2))
+- [ ] **Aura agent** - Narrative enhancement ([#3](https://github.com/deversmann/black-box/issues/3))
+- [ ] **Parser agent** - Memory extraction ([#4](https://github.com/deversmann/black-box/issues/4))
 
 ### 📋 Phase 3: The Ledger (Week 5-6)
 Persistent memory with semantic search and cooldown filter
@@ -128,19 +150,17 @@ Memory consolidation, caching, plugin system, preference learning
 
 ## Quick Start
 
-> **Note:** This project is currently in the design phase. Implementation begins with Phase 1.
-
 ### Prerequisites
 
 - Python 3.11 or higher
 - OpenRouter API key ([get one here](https://openrouter.ai))
 - Poetry or uv for dependency management
 
-### Installation (Future)
+### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/black-box.git
+git clone https://github.com/deversmann/black-box.git
 cd black-box
 
 # Install dependencies
@@ -152,6 +172,19 @@ cp .env.example .env
 
 # Run the Streamlit UI
 streamlit run frontend/app.py
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=blackbox --cov-report=html
+
+# Run specific test file
+pytest tests/test_agents/test_sieve.py
 ```
 
 ### Docker (Future)
@@ -239,6 +272,24 @@ The **Probe** agent acts as devil's advocate, vetoing responses that are logical
 
 This is a personal project currently in early development. Contributions, ideas, and feedback are welcome!
 
+### GitHub Issues & Milestones
+
+Work is organized using GitHub Issues with milestones for each phase:
+
+- **[Phase 2: Complete Agent Suite](https://github.com/deversmann/black-box/milestone/2)** (In Progress)
+- **[Phase 3: The Ledger](https://github.com/deversmann/black-box/milestone/3)** (Planned)
+- **[Phase 4: Production Readiness](https://github.com/deversmann/black-box/milestone/4)** (Planned)
+- **[Phase 5: Advanced Features](https://github.com/deversmann/black-box/milestone/5)** (Planned)
+
+**Labels:**
+- `phase-2-wave-1`, `phase-2-wave-2`, `phase-2-wave-3` - Phase 2 waves
+- `agent` - Agent-specific work
+- `ui/ux` - User interface and experience
+- `testing` - Test coverage and quality
+- `bug`, `enhancement`, `documentation` - Standard labels
+
+[View all open issues →](https://github.com/deversmann/black-box/issues)
+
 ### Development Setup
 
 ```bash
@@ -248,12 +299,24 @@ poetry install --with dev
 # Run tests
 pytest
 
+# Run with coverage
+pytest --cov=blackbox --cov-report=html
+
 # Run linter
 ruff check src/
 
 # Format code
 black src/
 ```
+
+### Workflow
+
+1. Pick an issue from the [current milestone](https://github.com/deversmann/black-box/milestone/2)
+2. Create a feature branch: `git checkout -b feature/vault-agent`
+3. Implement with tests (target 80%+ coverage)
+4. Update CHANGELOG.md with your changes
+5. Commit with co-authorship: `Co-Authored-By: Your Name <email@example.com>`
+6. Submit a pull request
 
 ## Roadmap & Vision
 
@@ -341,6 +404,6 @@ Inspired by the vision of AI assistants that truly learn and grow with their use
 
 ---
 
-**Status:** Design phase complete. Phase 1 implementation starting soon.
+**Status:** Phase 2 Wave 1 complete (Shield + Sensor). Wave 2 next (Vault + Probe).
 
-**Questions?** Open an issue or start a discussion!
+**Questions?** [Open an issue](https://github.com/deversmann/black-box/issues/new) or check the [milestone tracker](https://github.com/deversmann/black-box/milestone/2)!
