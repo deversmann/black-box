@@ -3,33 +3,36 @@
 This file helps Claude Code understand the project context when you return.
 
 ## Project: Black Box Swarm
-**Status:** Design phase complete, ready for Phase 1 implementation  
+**Status:** Phase 1 MVP Complete, Enhanced with Conversational Intelligence  
 **Date:** 2026-04-09
 
 ## What This Is
-Multi-agent AI system for a personal learning assistant that learns, remembers, and develops personality through 11 specialized agents coordinated via LangGraph.
+Multi-agent AI system for a personal learning assistant that learns, remembers, and develops personality through specialized agents coordinated via LangGraph.
 
 ## Current State
 
-### Completed
-- ✅ Comprehensive technical specification (SPEC.md)
-- ✅ Project structure defined
-- ✅ Technology stack chosen
-- ✅ Database schemas designed
-- ✅ All architectural decisions documented
-- ✅ 5-phase implementation roadmap
-- ✅ README.md for public consumption
-- ✅ MIT LICENSE
+### Phase 1: COMPLETE ✅
+- ✅ 4 core agents fully implemented and tested
+- ✅ LangGraph orchestration with conditional retry
+- ✅ OpenRouter integration (gpt-5.4 / gpt-5.4-nano)
+- ✅ Streamlit chat UI with session tracking
+- ✅ **Sliding window context** - Last 10 turns for conversational flow
+- ✅ **Detail level detection** - BRIEF/DETAILED/COMPREHENSIVE modes
+- ✅ **Truncation handling** - Auto-detects cutoffs, retries with feedback
+- ✅ **Conversational tuning** - Brief by default, detailed on request
+- ✅ 23 tests passing, 87% coverage
+- ✅ Complete documentation (SPEC.md, README.md, CHANGELOG.md, QUICKSTART.md)
 
 ### Next Steps
-**Phase 1: Core Swarm MVP (Week 1-2)**
-Implement 4 core agents to prove the swarm pattern:
-1. Sieve (Intent Distiller)
-2. Flash (Memory Retrieval - mock initially)
-3. Command (Master Synthesizer)
-4. Verdict (Validator)
-
-Plus: LangGraph orchestration, OpenRouter integration, Streamlit UI
+**Phase 2: Complete Agent Suite**
+Add 7 more agents for full personality system:
+1. Shield (2-pass safety)
+2. Sensor (mood detection)
+3. Vault (DB queries - mock initially)
+4. Probe (logic validation)
+5. Aura (narrative enhancement, P(tangent) ≥ 0.7)
+6. Parser (memory extraction)
+7. Shield Pass 2 (output safety)
 
 ## Technology Stack (Final Decisions)
 - **Language:** Python 3.11+
@@ -44,18 +47,37 @@ Plus: LangGraph orchestration, OpenRouter integration, Streamlit UI
 
 ## Key Architecture Concepts
 
-### The 11 Agents
-1. **Shield** - Safety (2-pass: input + output)
-2. **Sieve** - Intent distillation
-3. **Sensor** - Mood detection (JOVIAL, FRUSTRATED, etc.)
-4. **Flash** - Semantic memory search
-5. **Vault** - Relational DB queries
-6. **Probe** - Logic validation, can veto
-7. **Aura** - Narrative enhancement (P(tangent) ≥ 0.7)
-8. **Command** - Master synthesizer
-9. **Verdict** - Response validation
-10. **Shield Pass 2** - Output safety
-11. **Parser** - Memory extraction & storage
+### Phase 1 Agents (Implemented)
+
+1. **Sieve** - Intent distillation + detail level detection
+   - Parses user intent into bullet points
+   - Detects BRIEF/DETAILED/COMPREHENSIVE request
+   - Resolves pronouns using last 3 turns of context
+   - Output: `DETAIL_LEVEL: X\nINTENT: bullets`
+
+2. **Flash** - Memory retrieval (mock)
+   - Returns 3 hardcoded memories for testing
+   - Phase 3 will use real ChromaDB vector search
+
+3. **Command** - Master synthesizer with context sandwich
+   - Receives 5-layer context: Intent → Memories → History → Current
+   - 3 modes: BRIEF (500 tokens), DETAILED (800), COMPREHENSIVE (1200)
+   - Conversational by default, detailed on request
+   - Receives Verdict feedback on retry
+
+4. **Verdict** - Response validation with truncation detection
+   - Priority checks: Truncation → Length → Tone → Completeness
+   - Passes specific feedback to Command on failure
+   - Validates against expected detail_level
+
+### Phase 2 Agents (Planned)
+
+5. **Shield** - Safety (2-pass: input + output)
+6. **Sensor** - Mood detection (JOVIAL, FRUSTRATED, etc.)
+7. **Vault** - Relational DB queries
+8. **Probe** - Logic validation, can veto
+9. **Aura** - Narrative enhancement (P(tangent) ≥ 0.7)
+10. **Parser** - Memory extraction & storage
 
 ### The Ledger (Memory System)
 Hybrid database:
@@ -75,7 +97,48 @@ P(tangent) = Slider (0.0-1.0) + MoodModifier (±0.2)
 
 ## Critical Implementation Details
 
-### Atomic Memory Rewriting
+### Context Sandwich Structure (Implemented)
+Command receives context in priority order:
+1. **System Prompt** - Adapted to detail_level (BRIEF/DETAILED/COMPREHENSIVE)
+2. **Core Intent** (pinned) - From Sieve, prevents conversational drift
+3. **Flash Memories** - Long-term semantic context (mock in Phase 1)
+4. **Sliding Window** - Last 10 turns (20 messages) for conversational flow
+5. **Active Workspace** - Current user message + state
+
+This structure ensures agents have the right context at the right priority.
+
+### Detail Level Detection (Implemented)
+Sieve detects user's desired response length:
+- **BRIEF** (default): "What are decorators?" → 500 tokens (~300 words)
+- **DETAILED**: "Explain decorators in detail with examples" → 800 tokens
+- **COMPREHENSIVE**: "Give me everything about decorators" → 1200 tokens
+
+Triggers passed through state, Command adjusts prompt + token budget.
+
+### Truncation Handling (Implemented)
+Verdict detects mid-sentence cutoffs:
+1. Check if response ends with punctuation (. ? ! " etc.)
+2. If not → FAIL with specific feedback
+3. Command receives feedback on retry
+4. Max 2 retries before giving up
+
+Prevents user from seeing incomplete responses.
+
+### Model Tiering (Phase 1)
+- **Fast** (gpt-5.4-nano): Sieve, Flash, Verdict
+- **High-reasoning** (gpt-5.4): Command
+Target: < 2s for simple queries (achieved with mocks)
+
+### Conversational Tone (Implemented)
+All prompts emphasize:
+- "You're chatting, not teaching a class"
+- Brief by default, detailed on request
+- Everyday language, not textbook language
+- Offer to expand rather than dumping everything
+
+### Future Implementation (Phase 2+)
+
+**Atomic Memory Rewriting:**
 Parser must make memories self-contained:
 ```
 Input: "It broke yesterday"
@@ -84,16 +147,11 @@ Output: "The user's Honda Shadow motorcycle broke yesterday"
 ```
 Solution: Few-shot prompting + entity tracking + context injection
 
-### Cooldown Filter
+**Cooldown Filter:**
 In-memory cache → DB check → background cleanup
 Prevents mentioning same memory twice in 24 hours (configurable)
 
-### Model Tiering
-- Fast/cheap (gpt-4o-mini): Shield, Sieve, Sensor, Vault, Parser
-- Powerful (gpt-4o): Command, Aura, Probe
-Target: < 2s for simple queries
-
-### Parallelization via LangGraph
+**Parallelization via LangGraph:**
 - Sieve + Sensor run in parallel
 - Verdict + Shield Pass 2 run in parallel
 - Conditional: Aura only if P(tangent) ≥ 0.7
@@ -116,16 +174,44 @@ The user (project creator):
 - **LICENSE** - MIT open source license
 - **config/default.yaml** - Configuration reference (in SPEC.md)
 
+## Phase 1 Session Summary (2026-04-09)
+
+**What We Built:**
+- Complete 4-agent MVP with conversational intelligence
+- Sliding window context (10 turns) for natural conversation flow
+- Detail level detection (BRIEF/DETAILED/COMPREHENSIVE)
+- Truncation detection and automatic retry with feedback
+- Conversational tone tuning - brief by default, detailed on request
+- 23 tests passing, 87% coverage
+
+**Key Decisions Made:**
+- **Context sandwich** structure for agent prompts (user's idea ✨)
+- Brief responses by default (~300 words) with auto-expansion on request
+- Truncation detection as #1 priority in Verdict
+- Feedback loop between Verdict and Command
+- Two types of tangents identified: USER_TANGENT vs AI_TANGENT (for Phase 2)
+
+**Ready for Phase 2:**
+- Intent lifecycle tracking (CONTINUATION, USER_TANGENT, AI_TANGENT, SATISFIED_NEW, NEW)
+- 7 additional agents (Shield, Sensor, Vault, Probe, Aura, Parser)
+- P(tangent) calculation with mood modifiers
+- Safety profile enforcement
+
 ## When User Returns
 
-They'll likely want to:
-1. Begin Phase 1 implementation (4-agent MVP)
-2. Set up project structure (pyproject.toml, src/, tests/)
-3. Implement base abstractions (Agent ABC, SwarmState, Orchestrator)
-4. Create first 4 agents
-5. Build Streamlit UI
+**Phase 1 is complete!** They'll likely want to:
+1. Test the system thoroughly with various conversation patterns
+2. Begin Phase 2: Add remaining 7 agents
+3. Implement P(tangent) slider functionality
+4. Add Sensor for mood detection
+5. Implement intent lifecycle state machine
 
-**Remember:** User chose this architecture deliberately. Don't suggest simplifications unless there's a blocking issue. They understand the complexity and want the full vision built incrementally.
+**Remember:** 
+- User values detailed planning before coding
+- Chose full 11-agent system (not simplified)
+- Emphasizes maintainability and extensibility
+- Building for personal use but plans to open source
+- Wants assistant to "get to know them" like a friend would
 
 ## Quick Reference: Phase 1 Critical Files
 

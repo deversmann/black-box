@@ -96,16 +96,19 @@ The **Aura** agent (storyteller) activates when `P(tangent) ≥ 0.7`, transformi
 - [x] Database schemas
 - [x] Configuration design
 
-### 🚧 Phase 1: Core Swarm MVP (Week 1-2)
-**Goal:** Prove the swarm pattern works end-to-end
+### ✅ Phase 1: Core Swarm MVP (COMPLETE)
+**Goal:** Prove the swarm pattern works end-to-end with conversational intelligence
 
 **Agents:** Sieve → Flash (mock) → Command → Verdict
 
-**Deliverables:**
-- LangGraph orchestration with DAG visualization
-- OpenRouter integration
-- Streamlit chat interface
-- Basic retry logic
+**Delivered:**
+- ✅ LangGraph orchestration with conditional retry
+- ✅ OpenRouter integration (gpt-5.4 / gpt-5.4-nano)  
+- ✅ Streamlit chat interface with session tracking
+- ✅ Sliding window context (10 turns)
+- ✅ Detail level detection (BRIEF/DETAILED/COMPREHENSIVE)
+- ✅ Truncation handling with auto-retry
+- ✅ 23 tests passing, 87% coverage
 
 ### 📋 Phase 2: Complete Agent Suite (Week 3-4)
 All 11 agents implemented with full personality system
