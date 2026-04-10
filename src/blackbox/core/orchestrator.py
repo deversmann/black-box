@@ -253,3 +253,57 @@ class SwarmOrchestrator:
         result = await self.graph.ainvoke(initial_state)
 
         return result
+
+    async def process_stream(
+        self,
+        user_input: str,
+        session_id: str = "default",
+        conversation_history: list[dict] | None = None,
+    ):
+        """Process a user message through the swarm with event streaming.
+
+        Args:
+            user_input: The user's message
+            session_id: Session identifier for memory context
+            conversation_history: Recent conversation messages (last 10 turns)
+
+        Yields:
+            Events: {"type": "agent_start"|"agent_complete"|"final", "agent": str, "state": dict}
+        """
+        # Initialize state
+        initial_state: SwarmState = {
+            "user_input": user_input,
+            "session_id": session_id,
+            "conversation_history": conversation_history or [],
+            "p_tangent": self.config.associative["default_p_tangent"],
+            "aura_activated": False,
+            "retry_count": 0,
+            "agents_involved": [],
+            "validation_passed": False,
+            "safety_passed": True,
+        }
+
+        # Track which agents we've seen
+        seen_agents = set()
+
+        # Stream events from the graph
+        async for event in self.graph.astream(initial_state):
+            # event is a dict with node name as key
+            for node_name, node_output in event.items():
+                # Yield agent complete event
+                agent_name = node_name.replace("_run_", "").capitalize()
+
+                # Only yield if this is a new agent (avoid duplicates)
+                if agent_name not in seen_agents:
+                    seen_agents.add(agent_name)
+                    yield {
+                        "type": "agent_complete",
+                        "agent": agent_name,
+                        "state": node_output,
+                    }
+
+        # Get final state
+        final_state = await self.graph.ainvoke(initial_state)
+
+        # Yield final event
+        yield {"type": "final", "state": final_state}

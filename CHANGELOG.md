@@ -2,6 +2,21 @@
 
 All notable changes to the Black Box Swarm project will be documented in this file.
 
+## [0.1.1] - 2026-04-09
+
+### Phase 1.5: Agent Visualization - Complete
+
+#### Added
+- **Real-time agent visualization**: Live progress display during swarm execution
+  - Added `process_stream()` method to orchestrator using LangGraph's astream
+  - Streamlit UI shows agent progress with st.status widget
+  - Agent icons and descriptions: 🔍 Sieve, 💾 Flash, 🧠 Command, ✅ Verdict
+  - Updates in real-time as each agent completes
+  - Expandable status widget shows full agent flow
+  - Sets foundation for Phase 2 parallel agent visualization
+
+---
+
 ## [0.1.0] - 2026-04-09
 
 ### Phase 1: Core Swarm MVP - Complete

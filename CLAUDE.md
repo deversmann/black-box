@@ -3,7 +3,7 @@
 This file helps Claude Code understand the project context when you return.
 
 ## Project: Black Box Swarm
-**Status:** Phase 1 MVP Complete, Enhanced with Conversational Intelligence  
+**Status:** Phase 1.5 Complete - Agent Visualization Added  
 **Date:** 2026-04-09
 
 ## What This Is
@@ -22,6 +22,12 @@ Multi-agent AI system for a personal learning assistant that learns, remembers, 
 - ✅ **Conversational tuning** - Brief by default, detailed on request
 - ✅ 23 tests passing, 87% coverage
 - ✅ Complete documentation (SPEC.md, README.md, CHANGELOG.md, QUICKSTART.md)
+
+### Phase 1.5: COMPLETE ✅
+- ✅ **Real-time agent visualization** - Live progress display using st.status
+- ✅ Event streaming from LangGraph via astream()
+- ✅ Agent icons and descriptions in UI
+- ✅ Foundation for Phase 2 parallel agent visualization
 
 ### Next Steps
 **Phase 2: Complete Agent Suite**

@@ -99,6 +99,7 @@ User Input → Sieve → Flash → Command → Verdict → Final Response
 
 ### UI Features
 - Chat interface with message history
+- **Real-time agent visualization** - See agents work in real-time 🔍💾🧠✅
 - Associative slider (P(tangent)) - controls creativity (0.0 - 1.0)
 - Debug panel showing which agents executed
 - Session tracking

@@ -35,27 +35,64 @@ def get_swarm() -> SwarmOrchestrator:
     return SwarmOrchestrator(config, client)
 
 
-async def process_message(
-    prompt: str, session_id: str, conversation_history: list[dict]
-) -> dict:
-    """Process a message through the swarm.
+async def process_message_stream(
+    prompt: str, session_id: str, conversation_history: list[dict], status_container
+):
+    """Process a message through the swarm with streaming updates.
 
     Args:
         prompt: User message
         session_id: Session identifier
         conversation_history: Recent conversation messages for context
+        status_container: Streamlit status container for updates
+
+    Yields:
+        Events from the swarm processing
 
     Returns:
-        Result dictionary from swarm processing
+        Final result dictionary from swarm processing
     """
     orchestrator = get_swarm()
+
+    # Agent emoji mapping
+    agent_icons = {
+        "Sieve": "🔍",
+        "Flash": "💾",
+        "Command": "🧠",
+        "Verdict": "✅",
+    }
+
+    agent_descriptions = {
+        "Sieve": "Analyzing intent and context",
+        "Flash": "Retrieving relevant memories",
+        "Command": "Synthesizing response",
+        "Verdict": "Validating quality",
+    }
+
     try:
-        result = await orchestrator.process(
+        final_state = None
+
+        async for event in orchestrator.process_stream(
             user_input=prompt,
             session_id=session_id,
             conversation_history=conversation_history,
-        )
-        return result
+        ):
+            event_type = event.get("type")
+
+            if event_type == "agent_complete":
+                agent_name = event.get("agent", "Unknown")
+                icon = agent_icons.get(agent_name, "⚙️")
+                description = agent_descriptions.get(agent_name, "Processing")
+
+                # Update status with completion
+                status_container.write(f"{icon} {agent_name}: {description}")
+
+            elif event_type == "final":
+                final_state = event.get("state")
+                status_container.update(label="✨ Complete!", state="complete")
+
+        return final_state
+
     finally:
         # Clean up the httpx client
         await orchestrator.client.close()
@@ -114,35 +151,45 @@ def main() -> None:
 
         # Process through swarm
         with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                # Get last 10 turns (20 messages) for sliding window
-                # Don't include the current message (it's passed separately)
-                history = st.session_state.messages[-20:] if len(st.session_state.messages) > 20 else st.session_state.messages
+            # Get last 10 turns (20 messages) for sliding window
+            # Don't include the current message (it's passed separately)
+            history = (
+                st.session_state.messages[-20:]
+                if len(st.session_state.messages) > 20
+                else st.session_state.messages
+            )
 
-                # Run async process - asyncio.run() properly manages the event loop
+            # Show agent progress with status indicator
+            with st.status("🧠 Processing through the swarm...", expanded=True) as status:
+                # Run async process with streaming updates
                 result = asyncio.run(
-                    process_message(
+                    process_message_stream(
                         prompt=prompt,
                         session_id=st.session_state.session_id,
                         conversation_history=history,
+                        status_container=status,
                     )
                 )
 
-                # Get response
-                response = result.get("final_response") or result.get("draft_response") or "I apologize, but I wasn't able to generate a response. Please try again."
+            # Get response
+            response = (
+                result.get("final_response")
+                or result.get("draft_response")
+                or "I apologize, but I wasn't able to generate a response. Please try again."
+            )
 
-                # Display response
-                st.markdown(response)
+            # Display response
+            st.markdown(response)
 
-                # Store in chat history
-                st.session_state.messages.append({"role": "assistant", "content": response})
+            # Store in chat history
+            st.session_state.messages.append({"role": "assistant", "content": response})
 
-                # Update debug info
-                st.session_state.last_agents = result.get("agents_involved", [])
+            # Update debug info
+            st.session_state.last_agents = result.get("agents_involved", [])
 
-                # Show validation status
-                if not result.get("validation_passed", True):
-                    st.warning("⚠️ Response validation failed - showing draft")
+            # Show validation status
+            if not result.get("validation_passed", True):
+                st.warning("⚠️ Response validation failed - showing draft")
 
 
 if __name__ == "__main__":
