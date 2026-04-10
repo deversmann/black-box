@@ -3,8 +3,8 @@
 This file helps Claude Code understand the project context when you return.
 
 ## Project: Black Box Swarm
-**Status:** Phase 1.5 Complete - Agent Visualization Added  
-**Date:** 2026-04-09
+**Status:** Phase 2 Wave 1 Complete - Shield & Sensor Added  
+**Date:** 2026-04-10
 
 ## What This Is
 Multi-agent AI system for a personal learning assistant that learns, remembers, and develops personality through specialized agents coordinated via LangGraph.
@@ -29,16 +29,30 @@ Multi-agent AI system for a personal learning assistant that learns, remembers, 
 - ✅ Agent icons and descriptions in UI
 - ✅ Foundation for Phase 2 parallel agent visualization
 
+### Phase 2 Wave 1: COMPLETE ✅
+- ✅ **Shield agent** - Two-pass safety validation (input + output)
+  - Three safety profiles: STRICT, BALANCED, EXPERIMENTAL
+  - Integrated at graph ingress (Pass 1) and egress (Pass 2)
+- ✅ **Sensor agent** - Mood detection and P(tangent) calculation
+  - 6 mood states: JOVIAL, CURIOUS, NEUTRAL, FOCUSED, FRUSTRATED, HURRIED
+  - Calculates P(tangent) = slider + mood_modifier, clamped [0.0, 1.0]
+- ✅ **Parallel execution** - Sieve + Sensor run concurrently via asyncio.gather()
+- ✅ **Sequential validation** - Verdict → (retry OR Shield Pass 2)
+- ✅ **UI enhancements**
+  - Metadata sidebar panel (mood, P(tangent), detail level, Aura status, safety profile)
+  - Enhanced agent status messages with dynamic state display
+  - Retry indicators (🔁) for Command/Verdict retries
+  - Safety profile selector in settings
+- ✅ **COMPREHENSIVE mode improvements**
+  - Increased token budget (500→2200) with prompt guardrails
+  - Prevents truncation while encouraging concise responses
+- ✅ 43 tests passing, 87% coverage
+
 ### Next Steps
-**Phase 2: Complete Agent Suite**
-Add 7 more agents for full personality system:
-1. Shield (2-pass safety)
-2. Sensor (mood detection)
-3. Vault (DB queries - mock initially)
-4. Probe (logic validation)
-5. Aura (narrative enhancement, P(tangent) ≥ 0.7)
-6. Parser (memory extraction)
-7. Shield Pass 2 (output safety)
+**Phase 2 Wave 2: Vault + Probe**
+Add remaining validation and data agents:
+1. Vault (DB queries - mock initially)
+2. Probe (logic validation)
 
 ## Technology Stack (Final Decisions)
 - **Language:** Python 3.11+
@@ -67,7 +81,7 @@ Add 7 more agents for full personality system:
 
 3. **Command** - Master synthesizer with context sandwich
    - Receives 5-layer context: Intent → Memories → History → Current
-   - 3 modes: BRIEF (500 tokens), DETAILED (800), COMPREHENSIVE (1200)
+   - 3 modes: BRIEF (500 tokens), DETAILED (800), COMPREHENSIVE (2200)
    - Conversational by default, detailed on request
    - Receives Verdict feedback on retry
 
@@ -76,14 +90,23 @@ Add 7 more agents for full personality system:
    - Passes specific feedback to Command on failure
    - Validates against expected detail_level
 
-### Phase 2 Agents (Planned)
+### Phase 2 Agents
 
-5. **Shield** - Safety (2-pass: input + output)
-6. **Sensor** - Mood detection (JOVIAL, FRUSTRATED, etc.)
-7. **Vault** - Relational DB queries
-8. **Probe** - Logic validation, can veto
-9. **Aura** - Narrative enhancement (P(tangent) ≥ 0.7)
-10. **Parser** - Memory extraction & storage
+5. **Shield** - Safety validation (2-pass: input + output) ✅
+   - Pass 1: User input safety check (blocks unsafe input)
+   - Pass 2: Response output safety check (blocks unsafe output)
+   - Three profiles: STRICT (strict filtering), BALANCED (default), EXPERIMENTAL (minimal)
+   - Returns SAFE/UNSAFE with reasoning
+
+6. **Sensor** - Mood detection and P(tangent) calculation ✅
+   - Detects 6 mood states: JOVIAL (+0.2), CURIOUS (+0.1), NEUTRAL (0.0), FOCUSED (-0.1), FRUSTRATED (-0.2), HURRIED (-0.2)
+   - Calculates P(tangent) = base_slider + mood_modifier (clamped [0.0, 1.0])
+   - Runs in parallel with Sieve for efficiency
+
+7. **Vault** - Relational DB queries (Planned)
+8. **Probe** - Logic validation, can veto (Planned)
+9. **Aura** - Narrative enhancement (P(tangent) ≥ 0.7) (Planned)
+10. **Parser** - Memory extraction & storage (Planned)
 
 ### The Ledger (Memory System)
 Hybrid database:

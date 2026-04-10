@@ -2,6 +2,90 @@
 
 All notable changes to the Black Box Swarm project will be documented in this file.
 
+## [0.2.0] - 2026-04-10
+
+### Phase 2 Wave 1: Shield & Sensor - Complete
+
+#### Added
+- **Shield agent**: Two-pass safety validation system
+  - Shield Pass 1: User input safety check at graph ingress
+  - Shield Pass 2: Response output safety check at graph egress
+  - Three safety profiles: STRICT, BALANCED (default), EXPERIMENTAL
+  - Configurable via sidebar safety profile selector
+  - Returns SAFE/UNSAFE with reasoning
+  - Aborts execution on unsafe input/output
+
+- **Sensor agent**: Mood detection and P(tangent) calculation
+  - Detects 6 mood states: JOVIAL, CURIOUS, NEUTRAL, FOCUSED, FRUSTRATED, HURRIED
+  - Mood modifiers: JOVIAL (+0.2), CURIOUS (+0.1), NEUTRAL (0.0), FOCUSED (-0.1), FRUSTRATED (-0.2), HURRIED (-0.2)
+  - Calculates P(tangent) = base_slider + mood_modifier (clamped [0.0, 1.0])
+  - Provides confidence score and reasoning for mood detection
+
+- **Parallel execution**: Sieve + Sensor run concurrently
+  - Uses asyncio.gather() for true parallel execution
+  - Proper state merging to avoid duplicate agents_involved entries
+  - Significantly reduces latency for early-stage processing
+
+- **UI enhancements**:
+  - Metadata sidebar panel showing current state:
+    - Mood (with emoji)
+    - P(tangent) calculated value
+    - Detail level
+    - Aura status
+    - Safety profile
+  - Enhanced agent status messages with dynamic state display
+  - Retry indicators: 🔁 icon in parentheses for retried agents
+  - Safety profile selector in settings sidebar
+  - Shield emoji (🛡️) for both Shield Pass 1 and Pass 2
+  - Sensor emoji (🎭) for mood detection
+  - Running indicators (🔄) that clear after agent completes
+
+- **Test coverage**: Added comprehensive tests for new agents
+  - Shield agent tests: all safety profiles, both passes, SAFE/UNSAFE detection
+  - Sensor agent tests: all mood states, modifier mappings, malformed responses
+  - Integration tests: full swarm flow with Wave 1 agents
+  - 43 tests passing, 87% coverage
+
+#### Changed
+- **Graph flow restructured**: Sequential Verdict → Shield Pass 2
+  - Changed from parallel to sequential for better semantics
+  - Verdict decides: retry Command OR proceed to Shield Pass 2
+  - Shield Pass 2 now preserves final_response from Verdict
+  - Clearer retry flow visible in UI
+
+- **COMPREHENSIVE mode improvements**:
+  - Increased max_tokens: 1200 → 2200 to prevent truncation
+  - Updated prompt: emphasizes completing thoughts (~800 words target)
+  - Encourages depth over breadth ("Better to cover 3-4 topics well than 10 incompletely")
+  - Significantly reduced OpenRouter "length" finish reasons
+
+- **Verdict validation**: Made COMPREHENSIVE mode more lenient
+  - Changed from vague "thorough coverage" to concrete "8+ sentences, be LENIENT - only FAIL if < 5 sentences"
+  - Reduces false positives for comprehensive responses
+
+#### Fixed
+- **Infinite retry loop**: Retry count increment moved to node (not conditional)
+  - LangGraph ignores state mutations in conditional functions
+  - Now properly increments in _run_verdict() before returning
+
+- **Phantom retry indicators**: Fixed duplicate agents_involved entries
+  - Parallel node merging now extracts only NEW agents from each result
+  - Prevents "Retry #1" showing when no retry occurred
+
+- **Shield Pass 2 response loss**: Fixed fallback message despite successful execution
+  - Shield Pass 2 now explicitly returns final_response and draft_response from state
+  - Streaming captures final state correctly
+
+- **Running indicators sticking**: Fixed temporary "Running..." messages
+  - Clear running_message on final event
+  - Proper lifecycle management for status indicators
+
+- **Duplicate Shield Pass 1 events**: Fixed event emission logic
+  - Only use agents_involved list for event emission
+  - Detect list length changes to emit new agent completions
+
+---
+
 ## [0.1.1] - 2026-04-09
 
 ### Phase 1.5: Agent Visualization - Complete

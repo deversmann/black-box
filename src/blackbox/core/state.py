@@ -21,6 +21,19 @@ class SwarmState(TypedDict, total=False):
     detail_level: str | None  # From Sieve: BRIEF, DETAILED, COMPREHENSIVE
     user_state: str | None  # From Sensor (JOVIAL, FRUSTRATED, etc.)
 
+    # Shield outputs (Wave 1)
+    safety_profile: str | None  # STRICT, BALANCED, EXPERIMENTAL
+    shield_pass1_result: str | None  # SAFE/UNSAFE with reason
+    shield_pass2_result: str | None  # SAFE/UNSAFE with reason
+    shield_pass1_safe: bool | None
+    shield_pass2_safe: bool | None
+
+    # Sensor outputs (Wave 1)
+    user_mood: str | None  # JOVIAL, CURIOUS, NEUTRAL, FOCUSED, FRUSTRATED, HURRIED
+    mood_confidence: float | None  # 0.0-1.0
+    mood_modifier: float | None  # -0.2 to +0.2
+    mood_reasoning: str | None  # Brief explanation
+
     # Context outputs
     memory_hits: list[dict] | None  # From Flash
     facts: list[str] | None  # From Vault

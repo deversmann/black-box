@@ -41,11 +41,12 @@ What you know about them:
                 + """
 How to respond - COMPREHENSIVE MODE:
 - User wants thorough coverage - they asked for "everything", "complete guide", etc.
-- Cover multiple aspects, edge cases, best practices
-- Include examples and explanations
-- Still be conversational, just more complete
-- You have ~800 words - use them to be thorough
+- Cover the main aspects with good examples and explanations
+- You have ~800 words MAX - stay within this to avoid cutoff
+- CRITICAL: Better to cover 3-4 topics completely than 10 topics incompletely
 - Organize clearly (numbered lists, sections if needed)
+- Still conversational, just more complete
+- Watch your length - finish strong before hitting the limit
 
 You're being thorough because they asked for it, not because you're lecturing."""
             )
@@ -155,7 +156,7 @@ Fix the issue and generate a better response."""
         token_limits = {
             "BRIEF": 500,  # ~300 words
             "DETAILED": 800,  # ~500 words
-            "COMPREHENSIVE": 1200,  # ~800 words
+            "COMPREHENSIVE": 2200,  # ~1400 words - extra headroom to prevent cutoff
         }
         max_tokens = token_limits.get(detail_level, 500)
 
