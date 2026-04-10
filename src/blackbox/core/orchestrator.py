@@ -567,6 +567,7 @@ class SwarmOrchestrator:
         session_id: str = "default",
         conversation_history: list[dict] | None = None,
         safety_profile: str | None = None,
+        p_tangent: float | None = None,
     ):
         """Process a user message through the swarm with event streaming.
 
@@ -575,6 +576,7 @@ class SwarmOrchestrator:
             session_id: Session identifier for memory context
             conversation_history: Recent conversation messages (last 10 turns)
             safety_profile: Safety profile to use (strict/balanced/experimental)
+            p_tangent: Base tangent probability (0.0-1.0), defaults to config value
 
         Yields:
             Events: {"type": "agent_start"|"agent_complete"|"final", "agent": str, "state": dict}
@@ -584,7 +586,7 @@ class SwarmOrchestrator:
             "user_input": user_input,
             "session_id": session_id,
             "conversation_history": conversation_history or [],
-            "p_tangent": self.config.associative["default_p_tangent"],
+            "p_tangent": p_tangent if p_tangent is not None else self.config.associative["default_p_tangent"],
             "aura_activated": False,
             "retry_count": 0,
             "agents_involved": [],

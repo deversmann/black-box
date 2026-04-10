@@ -40,9 +40,17 @@ Multi-agent AI system for a personal learning assistant that learns, remembers, 
 - ✅ **Sequential validation** - Verdict → (retry OR Shield Pass 2)
 - ✅ **UI enhancements**
   - Metadata sidebar panel (mood, P(tangent), detail level, Aura status, safety profile)
+  - Real-time sidebar updates (current turn, not delayed)
+  - P(tangent) slider properly connected to swarm
+  - Compact emoji flow in Debug Info panel (🛡️₁ → 🔍 → 🎭 → ...)
   - Enhanced agent status messages with dynamic state display
   - Retry indicators (🔁) for Command/Verdict retries
   - Safety profile selector in settings
+  - Status bubble expanded by default for visibility
+  - Fixed ghost message duplication during processing
+- ✅ **Sieve expansion detection**
+  - Detects continuation patterns (assistant offers → user affirms)
+  - Prevents Command/Verdict conflicts on expansion requests
 - ✅ **COMPREHENSIVE mode improvements**
   - Increased token budget (500→2200) with prompt guardrails
   - Prevents truncation while encouraging concise responses

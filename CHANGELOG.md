@@ -84,6 +84,39 @@ All notable changes to the Black Box Swarm project will be documented in this fi
   - Only use agents_involved list for event emission
   - Detect list length changes to emit new agent completions
 
+### UI/UX Fixes - 2026-04-10
+
+#### Fixed
+- **Sidebar metadata one-turn delay**: Metadata panel now updates with current turn, not previous
+  - Session state updated immediately after async processing completes
+  - Sidebar shows live mood, P(tangent), detail level, etc. from current response
+
+- **P(tangent) slider not connected**: Associative slider now properly passed to swarm
+  - Added p_tangent parameter to process_stream()
+  - Sensor now calculates based on slider value + mood modifier
+  - Previously always used config default (0.5)
+
+- **Debug info text wrapping**: Agent flow display now uses compact emoji format
+  - Changed from vertical list to horizontal flow: 🛡️₁ → 🔍 → 🎭 → 💾 → 🧠 → ✅ → 🛡️₂
+  - Fits cleanly in narrow sidebar
+  - Makes retry patterns obvious (duplicate emojis)
+
+- **Sieve expansion detection**: Added continuation pattern recognition
+  - Sieve now detects when assistant offers expansion and user affirms
+  - Example: Assistant says "Would you like more detail?" → User says "yes" → DETAILED mode
+  - Prevents Command/Verdict conflict where Command expands but Sieve detects BRIEF
+  - Added example pattern to Sieve prompt
+
+- **Greyed-out duplicate message**: Fixed ghost message appearing during processing
+  - Root cause: Empty assistant message bubble during async streaming
+  - Solution: Create response placeholder at start, populate on completion
+  - Eliminated partial rerender artifacts
+
+#### Changed
+- **Status bubble default state**: Now starts expanded (was collapsed)
+  - Shows live agent progress updates during execution
+  - Better visibility for debugging and user awareness
+
 ---
 
 ## [0.1.1] - 2026-04-09

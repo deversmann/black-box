@@ -38,6 +38,7 @@ Output format - TWO PARTS:
    - BRIEF: Default, conversational answer (3-5 sentences)
    - DETAILED: User wants more depth (examples, explanations, code)
      Triggers: "explain in detail", "comprehensive", "tell me more", "can you elaborate", "with examples"
+     Continuation: If assistant offered to expand/explain more in previous message, and user affirms ("yes", "please", "sure", "go ahead"), treat as DETAILED even if current message is short
    - COMPREHENSIVE: User wants thorough coverage (multiple aspects, edge cases)
      Triggers: "everything about", "complete guide", "all the details", "step by step"
 
@@ -47,7 +48,9 @@ Output format - TWO PARTS:
    - If current message refers to previous context ("it", "that", "what about X"), incorporate that context
    - Note any relevant context (e.g., "user has some background knowledge", "follow-up to previous question")
 
-Example:
+Examples:
+
+Example 1 - Explicit request:
 Recent: User asked about "How do decorators work?"
 Current: "Can you explain error handling in detail with examples?"
 
@@ -57,6 +60,16 @@ INTENT:
 - Explain error handling for Python decorators
 - Include code examples
 - Follow-up to previous decorator question
+
+Example 2 - Continuation pattern:
+Recent: Assistant said "...Would you like me to explain the implementation details?"
+Current: "Yes please"
+
+Output:
+DETAIL_LEVEL: DETAILED
+INTENT:
+- User accepts offer to expand on previous topic
+- Provide implementation details as offered
 
 Keep it concise. Do not elaborate or answer the question - just distill the intent and detect detail level."""
 
