@@ -101,6 +101,7 @@ class SwarmOrchestrator:
 
         return {
             "intent_signals": output.result,
+            "detail_level": output.metadata.get("detail_level", "BRIEF"),
             "agents_involved": state.get("agents_involved", []) + ["Sieve"],
         }
 
@@ -138,11 +139,15 @@ class SwarmOrchestrator:
         history = state.get("conversation_history", [])
         sliding_window = history[-20:] if len(history) > 20 else history
 
+        # Get detail level from Sieve
+        detail_level = state.get("detail_level", "BRIEF")
+
         context = {
             "intent_signals": state.get("intent_signals", ""),
             "memories": state.get("memory_hits", []),
             "user_state": state.get("user_state", "NEUTRAL"),
             "conversation_history": sliding_window,
+            "detail_level": detail_level,
         }
 
         # On retry, include feedback from Verdict
@@ -174,6 +179,7 @@ class SwarmOrchestrator:
             context={
                 "draft_response": state.get("draft_response", ""),
                 "intent_signals": state.get("intent_signals", ""),
+                "detail_level": state.get("detail_level", "BRIEF"),
             },
         )
         output = await self.verdict.execute(agent_input)

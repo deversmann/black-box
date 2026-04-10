@@ -18,6 +18,7 @@ class SwarmState(TypedDict, total=False):
 
     # Ingress outputs
     intent_signals: str | None  # From Sieve
+    detail_level: str | None  # From Sieve: BRIEF, DETAILED, COMPREHENSIVE
     user_state: str | None  # From Sensor (JOVIAL, FRUSTRATED, etc.)
 
     # Context outputs

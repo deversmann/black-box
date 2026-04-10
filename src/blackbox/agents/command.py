@@ -21,29 +21,68 @@ class Command(Agent):
         super().__init__(config)
         self.client = client
 
-    def get_system_prompt(self) -> str:
-        """Return the system prompt for Command."""
-        return """You're talking to someone you know. Be natural, brief, and conversational.
+    def get_system_prompt(self, detail_level: str = "BRIEF") -> str:
+        """Return the system prompt for Command.
+
+        Args:
+            detail_level: BRIEF, DETAILED, or COMPREHENSIVE
+        """
+        base = """You're talking to someone you know. Be natural and conversational.
 
 What you know about them:
 - Their intent (what they're asking about)
 - Past context/memories
 - Their current mood
+"""
 
-How to respond:
-- **Keep it SHORT** - 3-4 sentences max for simple questions
+        if detail_level == "COMPREHENSIVE":
+            return (
+                base
+                + """
+How to respond - COMPREHENSIVE MODE:
+- User wants thorough coverage - they asked for "everything", "complete guide", etc.
+- Cover multiple aspects, edge cases, best practices
+- Include examples and explanations
+- Still be conversational, just more complete
+- You have ~800 words - use them to be thorough
+- Organize clearly (numbered lists, sections if needed)
+
+You're being thorough because they asked for it, not because you're lecturing."""
+            )
+        elif detail_level == "DETAILED":
+            return (
+                base
+                + """
+How to respond - DETAILED MODE:
+- User wants depth - they asked for "detail", "examples", "explain more"
+- Provide concrete examples and explanations
+- Go beyond surface level but stay focused
+- You have ~500 words - enough for good detail
+- Still conversational, just with more substance
+
+Bad: "Decorators modify functions."
+Good: "Decorators modify functions. Here's how: when you put @decorator above a function, Python calls decorator(function) and uses the result. For example, @timer could measure how long a function takes to run."
+
+You're explaining because they want to understand, not showing off."""
+            )
+        else:  # BRIEF
+            return (
+                base
+                + """
+How to respond - BRIEF MODE (default):
+- **Keep it SHORT** - 3-4 sentences for simple questions
 - Use everyday language, not textbook language
-- If they want more detail, they'll ask "tell me more" or "can you explain X"
+- Give the key point + offer to expand
 - Don't lecture. Don't list things unless asked.
-- If a topic is big, give the key point + offer to expand: "Want me to explain how X works?"
-
-CRITICAL: You have a ~300 word limit. Always finish your thought. If you can't cover everything briefly, say so and ask what they want to focus on.
+- You have ~300 words - use less if possible
 
 Bad: "Python decorators are functions that modify the behavior of other functions. They use the @ syntax. Here are several examples: [lists 5 examples with code]..."
 
 Good: "Decorators let you modify functions. Think of them like wrappers - you put @something above a function to add behavior. Want to see a quick example?"
 
 You're chatting, not teaching a class."""
+            )
+
 
     async def execute(self, agent_input: AgentInput) -> AgentOutput:
         """Execute response synthesis.
@@ -60,6 +99,7 @@ You're chatting, not teaching a class."""
         user_state = agent_input.context.get("user_state", "NEUTRAL")
         verdict_feedback = agent_input.context.get("verdict_feedback", "")
         conversation_history = agent_input.context.get("conversation_history", [])
+        detail_level = agent_input.context.get("detail_level", "BRIEF")
 
         # Format memory context
         memory_context = ""
@@ -111,8 +151,16 @@ Fix the issue and generate a better response."""
         else:
             user_message += "\n\nGenerate a brief, conversational response."
 
+        # Adjust max_tokens based on detail level
+        token_limits = {
+            "BRIEF": 500,  # ~300 words
+            "DETAILED": 800,  # ~500 words
+            "COMPREHENSIVE": 1200,  # ~800 words
+        }
+        max_tokens = token_limits.get(detail_level, 500)
+
         messages = [
-            OpenRouterMessage(role="system", content=self.get_system_prompt()),
+            OpenRouterMessage(role="system", content=self.get_system_prompt(detail_level)),
             OpenRouterMessage(role="user", content=user_message),
         ]
 
@@ -120,7 +168,7 @@ Fix the issue and generate a better response."""
             model=self.config.model,
             messages=messages,
             temperature=self.config.temperature,
-            max_tokens=self.config.max_tokens,
+            max_tokens=max_tokens,  # Dynamic based on detail level
         )
 
         return AgentOutput(

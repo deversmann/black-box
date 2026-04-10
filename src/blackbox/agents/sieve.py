@@ -32,22 +32,33 @@ You receive:
 - Recent conversation (last 2-3 messages for context)
 - Current user message
 
-Output format:
-- List 2-5 bullet points capturing what the user wants
-- Be specific and actionable
-- If current message refers to previous context ("it", "that", "what about X"), incorporate that context
-- Note any relevant context (e.g., "user has some background knowledge", "follow-up to previous question")
-- Strip filler words, pleasantries, and ambiguity
+Output format - TWO PARTS:
 
-Example with context:
+1. DETAIL_LEVEL: [one word only]
+   - BRIEF: Default, conversational answer (3-5 sentences)
+   - DETAILED: User wants more depth (examples, explanations, code)
+     Triggers: "explain in detail", "comprehensive", "tell me more", "can you elaborate", "with examples"
+   - COMPREHENSIVE: User wants thorough coverage (multiple aspects, edge cases)
+     Triggers: "everything about", "complete guide", "all the details", "step by step"
+
+2. INTENT: [bullet points]
+   - List 2-5 bullet points capturing what the user wants
+   - Be specific and actionable
+   - If current message refers to previous context ("it", "that", "what about X"), incorporate that context
+   - Note any relevant context (e.g., "user has some background knowledge", "follow-up to previous question")
+
+Example:
 Recent: User asked about "How do decorators work?"
-Current: "What about error handling?"
+Current: "Can you explain error handling in detail with examples?"
 
 Output:
+DETAIL_LEVEL: DETAILED
+INTENT:
 - Explain error handling for Python decorators
+- Include code examples
 - Follow-up to previous decorator question
 
-Keep it concise. Do not elaborate or answer the question - just distill the intent."""
+Keep it concise. Do not elaborate or answer the question - just distill the intent and detect detail level."""
 
     async def execute(self, agent_input: AgentInput) -> AgentOutput:
         """Execute intent distillation.
@@ -90,8 +101,23 @@ Distill the intent."""
             max_tokens=self.config.max_tokens,
         )
 
+        # Parse DETAIL_LEVEL from response
+        detail_level = "BRIEF"  # Default
+        if "DETAIL_LEVEL: DETAILED" in result:
+            detail_level = "DETAILED"
+        elif "DETAIL_LEVEL: COMPREHENSIVE" in result:
+            detail_level = "COMPREHENSIVE"
+
+        # Extract just the INTENT part for downstream agents
+        intent_only = result
+        if "INTENT:" in result:
+            intent_only = result.split("INTENT:")[1].strip()
+
         return AgentOutput(
-            result=result,
-            metadata={"agent": self.name},
+            result=intent_only,
+            metadata={
+                "agent": self.name,
+                "detail_level": detail_level,
+            },
             confidence=0.95,
         )

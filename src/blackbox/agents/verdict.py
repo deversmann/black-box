@@ -42,10 +42,11 @@ Check for:
    - FAIL if it sounds like a manual or lecture
    - Tell Command: "Too formal. Talk naturally, like explaining to a friend."
 
-5. Length: Is it brief?
-   - PASS if 3-5 sentences for simple questions
-   - FAIL if multi-paragraph unless user asked for detail
-   - Tell Command: "Too long. Give the key point in 3-4 sentences."
+5. Length: Is it appropriately sized for the DETAIL_LEVEL?
+   - BRIEF: PASS if 3-5 sentences, FAIL if multi-paragraph
+   - DETAILED: PASS if includes examples/depth, FAIL if too short or too long
+   - COMPREHENSIVE: PASS if thorough coverage, FAIL if cursory
+   - Tell Command: "Too long for BRIEF mode" or "Too short for DETAILED request"
 
 Output format (exactly):
 PASS: [brief reason]
@@ -65,6 +66,7 @@ Priority order: Truncation > Length > Tone > Completeness"""
         """
         draft_response = agent_input.context.get("draft_response", "")
         intent_signals = agent_input.context.get("intent_signals", "")
+        detail_level = agent_input.context.get("detail_level", "BRIEF")
         original_message = agent_input.message
 
         user_message = f"""Original User Message:
@@ -72,6 +74,9 @@ Priority order: Truncation > Length > Tone > Completeness"""
 
 Intent Signals:
 {intent_signals}
+
+Detail Level Expected: {detail_level}
+(BRIEF = 3-5 sentences, DETAILED = examples/depth, COMPREHENSIVE = thorough)
 
 Draft Response:
 {draft_response}
