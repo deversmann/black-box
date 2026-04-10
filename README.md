@@ -112,12 +112,16 @@ The **Aura** agent (storyteller) activates when `P(tangent) ≥ 0.7`, transformi
 
 ### 📋 Phase 2: Complete Agent Suite (Week 3-4)
 All 11 agents implemented with full personality system
+- 7 new agents: Shield, Sensor, Vault, Probe, Aura, Parser
+- P(tangent) calculation with mood modifiers
+- **UI enhancements:** Metadata sidebar panel + enhanced status messages
 
 ### 📋 Phase 3: The Ledger (Week 5-6)
 Persistent memory with semantic search and cooldown filter
 
 ### 📋 Phase 4: Production Readiness (Week 7-8)
 Testing, monitoring, Docker deployment, documentation
+- **LangGraph DAG visualization** for execution flow display
 
 ### 📋 Phase 5: Advanced Features (Week 9-10)
 Memory consolidation, caching, plugin system, preference learning

@@ -172,6 +172,10 @@ The user (project creator):
 - Plans to **open source** (MIT license)
 - Building **personal assistant** for general use across domains
 - Wants assistant to **get to know them** like a friend would
+- **UI preferences:**
+  - Likes real-time agent visualization during execution
+  - Wants both in-chat status updates AND sidebar metadata panel
+  - Interested in graphical DAG visualization (start with LangGraph built-in)
 
 ## Files to Reference
 
@@ -202,15 +206,20 @@ The user (project creator):
 - 7 additional agents (Shield, Sensor, Vault, Probe, Aura, Parser)
 - P(tangent) calculation with mood modifiers
 - Safety profile enforcement
+- **UI enhancements:**
+  - Metadata sidebar panel (mood, P(tangent), detail level, Aura status, safety profile)
+  - Enhanced agent status messages showing metadata details
 
 ## When User Returns
 
-**Phase 1 is complete!** They'll likely want to:
+**Phase 1 & 1.5 are complete!** They'll likely want to:
 1. Test the system thoroughly with various conversation patterns
 2. Begin Phase 2: Add remaining 7 agents
 3. Implement P(tangent) slider functionality
 4. Add Sensor for mood detection
 5. Implement intent lifecycle state machine
+6. Add metadata sidebar panel and enhanced status messages
+7. (Phase 4): LangGraph DAG visualization for execution flow
 
 **Remember:** 
 - User values detailed planning before coding

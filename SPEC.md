@@ -658,11 +658,25 @@ class SwarmState(TypedDict):
 - Safety profile enforcement
 - Parser extracts but doesn't store yet
 
+**UI Enhancements:**
+- **Metadata sidebar panel** - Live display of current state values:
+  - Mood (NEUTRAL, JOVIAL, FRUSTRATED, etc.)
+  - P(tangent) value (0.0-1.0)
+  - Detail level (BRIEF, DETAILED, COMPREHENSIVE)
+  - Aura activation status
+  - Safety profile
+- **Enhanced status messages** - Agent completions show metadata details:
+  - Sieve: Show detected intent and detail level
+  - Sensor: Show detected mood and modifier
+  - Verdict: Show validation results
+  - Aura: Show activation reason
+
 **Success Criteria:**
 - All agents execute in correct order
 - Aura adds narrative flair when slider is high
 - Probe vetoes incoherent responses
 - Parser outputs structured memory JSON
+- UI displays real-time state metadata
 
 ---
 
@@ -700,12 +714,18 @@ class SwarmState(TypedDict):
 - Docker deployment
 - Environment-specific configs
 - Admin CLI tools
+- **LangGraph DAG visualization** - Display execution graph:
+  - Show agent nodes and connections
+  - Highlight active execution paths
+  - Visualize retry flows when Verdict triggers rework
+  - Support for parallel agent execution display
 
 **Success Criteria:**
 - 80%+ test coverage
 - Can deploy with `docker-compose up`
 - Metrics visible via Prometheus endpoint
 - All tests passing
+- DAG visualization shows real-time execution flow
 
 ---
 
