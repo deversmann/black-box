@@ -169,6 +169,7 @@ async def process_message_stream(
         "Sieve": "🔍",
         "Sensor": "🎭",
         "Flash": "💾",
+        "Vault": "📚",
         "Command": "🧠",
         "Verdict": "✅",
     }
@@ -185,6 +186,7 @@ async def process_message_stream(
         "Sieve": lambda state: f"Intent: {state.get('detail_level', 'BRIEF')}",
         "Sensor": lambda state: f"Mood: {state.get('user_mood', 'NEUTRAL')} ({state.get('mood_modifier', 0):+.1f})",
         "Flash": lambda state: f"Memories: {len(state.get('memory_hits', []))}",
+        "Vault": lambda state: f"Facts: {len(state.get('facts', []))}",
         "Command": "Synthesizing response",
         "Verdict": lambda state: f"{'✓ Pass' if state.get('validation_passed') else '✗ Fail'}",
     }
@@ -199,6 +201,7 @@ async def process_message_stream(
             "Sieve",
             "Sensor",
             "Flash",
+            "Vault",
             "Command",
             "Verdict",
             "Shield Pass 2",
@@ -373,6 +376,7 @@ def main() -> None:
                     "Sieve": "🔍",
                     "Sensor": "🎭",
                     "Flash": "💾",
+                    "Vault": "📚",
                     "Command": "🧠",
                     "Verdict": "✅",
                     "Shield Pass 2": "🛡️₂",

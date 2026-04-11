@@ -10,6 +10,7 @@ from blackbox.agents.flash import Flash
 from blackbox.agents.sensor import Sensor
 from blackbox.agents.shield import Shield
 from blackbox.agents.sieve import Sieve
+from blackbox.agents.vault import Vault
 from blackbox.agents.verdict import Verdict
 from blackbox.core.agent import AgentConfig, AgentInput
 from blackbox.core.config import Config
@@ -38,6 +39,9 @@ class SwarmOrchestrator:
         self.flash = Flash(
             AgentConfig(**config.agents["flash"]),
         )
+        self.vault = Vault(
+            AgentConfig(**config.agents["vault"]),
+        )
         self.command = Command(
             AgentConfig(**config.agents["command"]),
             client,
@@ -63,8 +67,8 @@ class SwarmOrchestrator:
     def _build_graph(self) -> StateGraph:
         """Build the LangGraph execution graph.
 
-        Phase 2 Wave 1 Flow:
-        Shield Pass 1 → [Parallel: Sieve + Sensor] → Flash → Command
+        Phase 2 Wave 2 Flow:
+        Shield Pass 1 → [Parallel: Sieve + Sensor] → Flash → Vault → Command
         → [Parallel: Verdict + Shield Pass 2] → END
 
         Returns:
@@ -77,6 +81,7 @@ class SwarmOrchestrator:
         workflow.add_node("shield_pass1", self._run_shield_pass1)
         workflow.add_node("parallel_ingress", self._run_parallel_ingress)
         workflow.add_node("flash", self._run_flash)
+        workflow.add_node("vault", self._run_vault)
         workflow.add_node("command", self._run_command)
         workflow.add_node("verdict", self._run_verdict)
         workflow.add_node("shield_pass2", self._run_shield_pass2)
@@ -98,8 +103,11 @@ class SwarmOrchestrator:
         # Parallel ingress (Sieve + Sensor) → Flash
         workflow.add_edge("parallel_ingress", "flash")
 
-        # Flash → Command
-        workflow.add_edge("flash", "command")
+        # Flash → Vault
+        workflow.add_edge("flash", "vault")
+
+        # Vault → Command
+        workflow.add_edge("vault", "command")
 
         # Command → Verdict (NOT parallel anymore)
         workflow.add_edge("command", "verdict")
@@ -241,6 +249,26 @@ class SwarmOrchestrator:
             "agents_involved": state.get("agents_involved", []) + ["Flash"],
         }
 
+    async def _run_vault(self, state: SwarmState) -> dict[str, Any]:
+        """Execute Vault agent.
+
+        Args:
+            state: Current swarm state
+
+        Returns:
+            State updates from Vault
+        """
+        agent_input = AgentInput(
+            message="",  # Vault doesn't use the user message directly
+            context={"memory_hits": state.get("memory_hits", [])},
+        )
+        output = await self.vault.execute(agent_input)
+
+        return {
+            "facts": output.metadata.get("facts", []),
+            "agents_involved": state.get("agents_involved", []) + ["Vault"],
+        }
+
     async def _run_command(self, state: SwarmState) -> dict[str, Any]:
         """Execute Command agent.
 
@@ -261,6 +289,7 @@ class SwarmOrchestrator:
         context = {
             "intent_signals": state.get("intent_signals", ""),
             "memories": state.get("memory_hits", []),
+            "facts": state.get("facts", []),
             "user_state": state.get("user_state", "NEUTRAL"),
             "conversation_history": sliding_window,
             "detail_level": detail_level,
