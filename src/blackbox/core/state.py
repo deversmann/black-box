@@ -42,6 +42,11 @@ class SwarmState(TypedDict, total=False):
     draft_response: str | None  # From Command
     enhanced_response: str | None  # From Aura (if activated)
 
+    # Validation outputs (Wave 2)
+    probe_approved: bool | None  # From Probe
+    probe_decision: str | None  # APPROVE, VETO, or SUGGEST
+    probe_reasoning: str | None  # Probe's explanation
+
     # Egress outputs
     final_response: str | None
     validation_passed: bool

@@ -102,6 +102,18 @@ def vault_config() -> AgentConfig:
 
 
 @pytest.fixture
+def probe_config() -> AgentConfig:
+    """Configuration for Probe agent."""
+    return AgentConfig(
+        name="Probe",
+        model="openai/gpt-5.4",
+        temperature=0.6,
+        max_tokens=400,
+        timeout=20,
+    )
+
+
+@pytest.fixture
 def mock_config() -> Mock:
     """Mock configuration for testing."""
     config = Mock(spec=Config)
@@ -156,6 +168,13 @@ def mock_config() -> Mock:
             "temperature": 0.0,
             "max_tokens": 200,
             "timeout": 5,
+        },
+        "probe": {
+            "name": "Probe",
+            "model": "openai/gpt-5.4",
+            "temperature": 0.6,
+            "max_tokens": 400,
+            "timeout": 20,
         },
     }
     config.associative = {

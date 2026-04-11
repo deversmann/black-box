@@ -171,6 +171,7 @@ async def process_message_stream(
         "Flash": "💾",
         "Vault": "📚",
         "Command": "🧠",
+        "Probe": "🔬",
         "Verdict": "✅",
     }
 
@@ -188,6 +189,7 @@ async def process_message_stream(
         "Flash": lambda state: f"Memories: {len(state.get('memory_hits', []))}",
         "Vault": lambda state: f"Facts: {len(state.get('facts', []))}",
         "Command": "Synthesizing response",
+        "Probe": lambda state: f"{state.get('probe_decision', 'APPROVE')}: {state.get('probe_reasoning', '')[:30]}...",
         "Verdict": lambda state: f"{'✓ Pass' if state.get('validation_passed') else '✗ Fail'}",
     }
 
@@ -195,7 +197,7 @@ async def process_message_stream(
         final_state = None
 
         # Expected agent flow for showing "Running..." indicators
-        # Note: Command and Verdict can appear multiple times (retries)
+        # Note: Command, Probe, and Verdict can appear multiple times (retries)
         expected_flow = [
             "Shield Pass 1",
             "Sieve",
@@ -203,6 +205,7 @@ async def process_message_stream(
             "Flash",
             "Vault",
             "Command",
+            "Probe",
             "Verdict",
             "Shield Pass 2",
         ]
@@ -378,6 +381,7 @@ def main() -> None:
                     "Flash": "💾",
                     "Vault": "📚",
                     "Command": "🧠",
+                    "Probe": "🔬",
                     "Verdict": "✅",
                     "Shield Pass 2": "🛡️₂",
                     "Shield Pass2": "🛡️₂",

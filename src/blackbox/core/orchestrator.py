@@ -7,6 +7,7 @@ from langgraph.graph import StateGraph, END
 
 from blackbox.agents.command import Command
 from blackbox.agents.flash import Flash
+from blackbox.agents.probe import Probe
 from blackbox.agents.sensor import Sensor
 from blackbox.agents.shield import Shield
 from blackbox.agents.sieve import Sieve
@@ -42,6 +43,10 @@ class SwarmOrchestrator:
         self.vault = Vault(
             AgentConfig(**config.agents["vault"]),
         )
+        self.probe = Probe(
+            AgentConfig(**config.agents["probe"]),
+            client,
+        )
         self.command = Command(
             AgentConfig(**config.agents["command"]),
             client,
@@ -69,7 +74,7 @@ class SwarmOrchestrator:
 
         Phase 2 Wave 2 Flow:
         Shield Pass 1 → [Parallel: Sieve + Sensor] → Flash → Vault → Command
-        → [Parallel: Verdict + Shield Pass 2] → END
+        → Probe → (retry OR Verdict) → (retry OR Shield Pass 2) → END
 
         Returns:
             Compiled StateGraph ready for execution
@@ -83,6 +88,7 @@ class SwarmOrchestrator:
         workflow.add_node("flash", self._run_flash)
         workflow.add_node("vault", self._run_vault)
         workflow.add_node("command", self._run_command)
+        workflow.add_node("probe", self._run_probe)
         workflow.add_node("verdict", self._run_verdict)
         workflow.add_node("shield_pass2", self._run_shield_pass2)
 
@@ -109,8 +115,18 @@ class SwarmOrchestrator:
         # Vault → Command
         workflow.add_edge("vault", "command")
 
-        # Command → Verdict (NOT parallel anymore)
-        workflow.add_edge("command", "verdict")
+        # Command → Probe
+        workflow.add_edge("command", "probe")
+
+        # Probe decides: retry Command OR continue to Verdict
+        workflow.add_conditional_edges(
+            "probe",
+            self._should_retry_after_probe,
+            {
+                "retry": "command",  # Probe vetoed - retry Command
+                "continue": "verdict",  # Probe approved - validate quality
+            },
+        )
 
         # Verdict decides: retry Command OR continue to Shield Pass 2
         workflow.add_conditional_edges(
@@ -145,6 +161,26 @@ class SwarmOrchestrator:
         """
         is_safe = state.get("shield_pass1_safe", False)
         return "continue" if is_safe else "abort"
+
+    def _should_retry_after_probe(self, state: SwarmState) -> str:
+        """Determine if we should retry Command after Probe.
+
+        Args:
+            state: Current swarm state
+
+        Returns:
+            "retry" or "continue"
+        """
+        probe_approved = state.get("probe_approved", True)
+        retry_count = state.get("retry_count", 0)
+        max_retries = 2
+
+        # Probe vetoed → retry if attempts remain
+        if not probe_approved and retry_count < max_retries:
+            return "retry"
+
+        # Probe approved or max retries exceeded → continue to Verdict
+        return "continue"
 
     def _should_retry_after_verdict(self, state: SwarmState) -> str:
         """Determine if we should retry Command after Verdict.
@@ -268,6 +304,44 @@ class SwarmOrchestrator:
             "facts": output.metadata.get("facts", []),
             "agents_involved": state.get("agents_involved", []) + ["Vault"],
         }
+
+    async def _run_probe(self, state: SwarmState) -> dict[str, Any]:
+        """Execute Probe agent - Logic validation.
+
+        Args:
+            state: Current swarm state
+
+        Returns:
+            State updates from Probe
+        """
+        agent_input = AgentInput(
+            message="",  # Probe doesn't use the user message directly
+            context={
+                "draft_response": state.get("draft_response", ""),
+                "intent_signals": state.get("intent_signals", ""),
+                "user_state": state.get("user_state", "NEUTRAL"),
+                "p_tangent": state.get("p_tangent", 0.5),
+            },
+        )
+        output = await self.probe.execute(agent_input)
+
+        approved = output.metadata.get("approved", True)
+        decision = output.metadata.get("decision", "APPROVE")
+        reasoning = output.metadata.get("reasoning", "")
+
+        # Increment retry count if probe vetoed
+        result = {
+            "probe_approved": approved,
+            "probe_decision": decision,
+            "probe_reasoning": reasoning,
+            "agents_involved": state.get("agents_involved", []) + ["Probe"],
+        }
+
+        if not approved:
+            current_retry = state.get("retry_count", 0)
+            result["retry_count"] = current_retry + 1
+
+        return result
 
     async def _run_command(self, state: SwarmState) -> dict[str, Any]:
         """Execute Command agent.
