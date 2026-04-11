@@ -5,6 +5,7 @@ from typing import Any
 
 from langgraph.graph import StateGraph, END
 
+from blackbox.agents.aura import Aura
 from blackbox.agents.command import Command
 from blackbox.agents.flash import Flash
 from blackbox.agents.probe import Probe
@@ -66,15 +67,21 @@ class SwarmOrchestrator:
             client,
         )
 
+        # Initialize Wave 3 agents (Phase 2)
+        self.aura = Aura(
+            AgentConfig(**config.agents["aura"]),
+            client,
+        )
+
         # Build the graph
         self.graph = self._build_graph()
 
     def _build_graph(self) -> StateGraph:
         """Build the LangGraph execution graph.
 
-        Phase 2 Wave 2 Flow:
+        Phase 2 Wave 3 Flow:
         Shield Pass 1 → [Parallel: Sieve + Sensor] → Flash → Vault → Command
-        → Probe → (retry OR Verdict) → (retry OR Shield Pass 2) → END
+        → Probe → (retry OR [Aura if P≥0.7] OR Verdict) → (retry OR Shield Pass 2) → END
 
         Returns:
             Compiled StateGraph ready for execution
@@ -89,6 +96,7 @@ class SwarmOrchestrator:
         workflow.add_node("vault", self._run_vault)
         workflow.add_node("command", self._run_command)
         workflow.add_node("probe", self._run_probe)
+        workflow.add_node("aura", self._run_aura)
         workflow.add_node("verdict", self._run_verdict)
         workflow.add_node("shield_pass2", self._run_shield_pass2)
 
@@ -118,15 +126,19 @@ class SwarmOrchestrator:
         # Command → Probe
         workflow.add_edge("command", "probe")
 
-        # Probe decides: retry Command OR continue to Verdict
+        # Probe decides: retry Command OR check if Aura should activate
         workflow.add_conditional_edges(
             "probe",
-            self._should_retry_after_probe,
+            self._route_after_probe,
             {
                 "retry": "command",  # Probe vetoed - retry Command
-                "continue": "verdict",  # Probe approved - validate quality
+                "aura": "aura",  # Probe approved + P(tangent) >= 0.7 - enhance
+                "verdict": "verdict",  # Probe approved + P(tangent) < 0.7 - validate
             },
         )
+
+        # Aura → Verdict
+        workflow.add_edge("aura", "verdict")
 
         # Verdict decides: retry Command OR continue to Shield Pass 2
         workflow.add_conditional_edges(
@@ -162,14 +174,14 @@ class SwarmOrchestrator:
         is_safe = state.get("shield_pass1_safe", False)
         return "continue" if is_safe else "abort"
 
-    def _should_retry_after_probe(self, state: SwarmState) -> str:
-        """Determine if we should retry Command after Probe.
+    def _route_after_probe(self, state: SwarmState) -> str:
+        """Route after Probe: retry, aura, or verdict.
 
         Args:
             state: Current swarm state
 
         Returns:
-            "retry" or "continue"
+            "retry", "aura", or "verdict"
         """
         probe_approved = state.get("probe_approved", True)
         retry_count = state.get("retry_count", 0)
@@ -179,8 +191,14 @@ class SwarmOrchestrator:
         if not probe_approved and retry_count < max_retries:
             return "retry"
 
-        # Probe approved or max retries exceeded → continue to Verdict
-        return "continue"
+        # Probe approved → check if Aura should activate
+        p_tangent = state.get("p_tangent", 0.5)
+        aura_threshold = self.config.associative.get("aura_activation_threshold", 0.7)
+
+        if p_tangent >= aura_threshold:
+            return "aura"  # High P(tangent) - enhance response
+
+        return "verdict"  # Low P(tangent) - skip to validation
 
     def _should_retry_after_verdict(self, state: SwarmState) -> str:
         """Determine if we should retry Command after Verdict.
@@ -342,6 +360,33 @@ class SwarmOrchestrator:
             result["retry_count"] = current_retry + 1
 
         return result
+
+    async def _run_aura(self, state: SwarmState) -> dict[str, Any]:
+        """Execute Aura agent - Narrative enhancement.
+
+        Args:
+            state: Current swarm state
+
+        Returns:
+            State updates from Aura
+        """
+        agent_input = AgentInput(
+            message="",  # Aura doesn't use the user message directly
+            context={
+                "draft_response": state.get("draft_response", ""),
+                "user_mood": state.get("user_mood", "NEUTRAL"),
+                "p_tangent": state.get("p_tangent", 0.5),
+            },
+        )
+        output = await self.aura.execute(agent_input)
+
+        # Aura produces enhanced_response
+        return {
+            "enhanced_response": output.result,
+            "aura_activated": True,
+            "p_tangent": state.get("p_tangent", 0.5),  # Preserve for UI display
+            "agents_involved": state.get("agents_involved", []) + ["Aura"],
+        }
 
     async def _run_command(self, state: SwarmState) -> dict[str, Any]:
         """Execute Command agent.

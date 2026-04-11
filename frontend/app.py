@@ -172,6 +172,7 @@ async def process_message_stream(
         "Vault": "📚",
         "Command": "🧠",
         "Probe": "🔬",
+        "Aura": "✨",
         "Verdict": "✅",
     }
 
@@ -190,6 +191,7 @@ async def process_message_stream(
         "Vault": lambda state: f"Facts: {len(state.get('facts', []))}",
         "Command": "Synthesizing response",
         "Probe": lambda state: f"{state.get('probe_decision', 'APPROVE')}: {state.get('probe_reasoning', '')[:30]}...",
+        "Aura": lambda state: f"Enhanced (P={state.get('p_tangent', 0.5):.2f})",
         "Verdict": lambda state: f"{'✓ Pass' if state.get('validation_passed') else '✗ Fail'}",
     }
 
@@ -382,6 +384,7 @@ def main() -> None:
                     "Vault": "📚",
                     "Command": "🧠",
                     "Probe": "🔬",
+                    "Aura": "✨",
                     "Verdict": "✅",
                     "Shield Pass 2": "🛡️₂",
                     "Shield Pass2": "🛡️₂",

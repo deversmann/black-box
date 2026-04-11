@@ -114,6 +114,18 @@ def probe_config() -> AgentConfig:
 
 
 @pytest.fixture
+def aura_config() -> AgentConfig:
+    """Configuration for Aura agent."""
+    return AgentConfig(
+        name="Aura",
+        model="openai/gpt-5.4",
+        temperature=0.9,
+        max_tokens=800,
+        timeout=30,
+    )
+
+
+@pytest.fixture
 def mock_config() -> Mock:
     """Mock configuration for testing."""
     config = Mock(spec=Config)
@@ -175,6 +187,14 @@ def mock_config() -> Mock:
             "temperature": 0.6,
             "max_tokens": 400,
             "timeout": 20,
+        },
+        # Wave 3 agents
+        "aura": {
+            "name": "Aura",
+            "model": "openai/gpt-5.4",
+            "temperature": 0.9,
+            "max_tokens": 800,
+            "timeout": 30,
         },
     }
     config.associative = {
