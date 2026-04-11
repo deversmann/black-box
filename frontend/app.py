@@ -174,6 +174,7 @@ async def process_message_stream(
         "Probe": "🔬",
         "Aura": "✨",
         "Verdict": "✅",
+        "Parser": "🗂️",
     }
 
     agent_descriptions = {
@@ -193,6 +194,7 @@ async def process_message_stream(
         "Probe": lambda state: f"{state.get('probe_decision', 'APPROVE')}: {state.get('probe_reasoning', '')[:30]}...",
         "Aura": lambda state: f"Enhanced (P={state.get('p_tangent', 0.5):.2f})",
         "Verdict": lambda state: f"{'✓ Pass' if state.get('validation_passed') else '✗ Fail'}",
+        "Parser": lambda state: f"Extracted {state.get('memories_count', 0)} memories",
     }
 
     try:
@@ -210,6 +212,7 @@ async def process_message_stream(
             "Probe",
             "Verdict",
             "Shield Pass 2",
+            "Parser",
         ]
 
         # Track agents seen in THIS execution only (not across session)
@@ -387,6 +390,7 @@ def main() -> None:
                     "Aura": "✨",
                     "Verdict": "✅",
                     "Shield Pass 2": "🛡️₂",
+                    "Parser": "🗂️",
                     "Shield Pass2": "🛡️₂",
                     "Shield_Pass2": "🛡️₂",
                     "Shieldpass2": "🛡️₂",
@@ -396,6 +400,15 @@ def main() -> None:
                 flow = " → ".join([agent_map.get(a, "⚙️") for a in st.session_state.last_agents])
                 st.write("**Agent Flow:**")
                 st.markdown(f"`{flow}`")
+
+            # Show extracted memories from Parser
+            if "last_state" in st.session_state:
+                extracted_memories = st.session_state.last_state.get("extracted_memories", [])
+                if extracted_memories:
+                    st.write("**Extracted Memories (from last turn):**")
+                    st.json(extracted_memories)
+                else:
+                    st.write("**Extracted Memories:** None (last turn)")
 
     # Initialize chat history
     if "messages" not in st.session_state:

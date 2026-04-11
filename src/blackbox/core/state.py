@@ -53,6 +53,10 @@ class SwarmState(TypedDict, total=False):
     safety_passed: bool
     verdict_feedback: str | None  # Feedback from Verdict for retry
 
+    # Parser outputs (Wave 3)
+    extracted_memories: list[dict] | None  # From Parser
+    memories_count: int | None  # Count of extracted memories
+
     # Metadata
     p_tangent: float  # Slider + mood modifier
     aura_activated: bool

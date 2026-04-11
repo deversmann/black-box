@@ -126,6 +126,18 @@ def aura_config() -> AgentConfig:
 
 
 @pytest.fixture
+def parser_config() -> AgentConfig:
+    """Configuration for Parser agent."""
+    return AgentConfig(
+        name="Parser",
+        model="openai/gpt-5.4-nano",
+        temperature=0.3,
+        max_tokens=1000,
+        timeout=20,
+    )
+
+
+@pytest.fixture
 def mock_config() -> Mock:
     """Mock configuration for testing."""
     config = Mock(spec=Config)
@@ -195,6 +207,13 @@ def mock_config() -> Mock:
             "temperature": 0.9,
             "max_tokens": 800,
             "timeout": 30,
+        },
+        "parser": {
+            "name": "Parser",
+            "model": "openai/gpt-5.4-nano",
+            "temperature": 0.3,
+            "max_tokens": 1000,
+            "timeout": 20,
         },
     }
     config.associative = {

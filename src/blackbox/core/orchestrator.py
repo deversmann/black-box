@@ -8,6 +8,7 @@ from langgraph.graph import StateGraph, END
 from blackbox.agents.aura import Aura
 from blackbox.agents.command import Command
 from blackbox.agents.flash import Flash
+from blackbox.agents.parser import Parser
 from blackbox.agents.probe import Probe
 from blackbox.agents.sensor import Sensor
 from blackbox.agents.shield import Shield
@@ -72,6 +73,10 @@ class SwarmOrchestrator:
             AgentConfig(**config.agents["aura"]),
             client,
         )
+        self.parser = Parser(
+            AgentConfig(**config.agents["parser"]),
+            client,
+        )
 
         # Build the graph
         self.graph = self._build_graph()
@@ -79,9 +84,10 @@ class SwarmOrchestrator:
     def _build_graph(self) -> StateGraph:
         """Build the LangGraph execution graph.
 
-        Phase 2 Wave 3 Flow:
+        Phase 2 Wave 3 Complete Flow:
         Shield Pass 1 → [Parallel: Sieve + Sensor] → Flash → Vault → Command
-        → Probe → (retry OR [Aura if P≥0.7] OR Verdict) → (retry OR Shield Pass 2) → END
+        → Probe → (retry OR [Aura if P≥0.7] OR Verdict) → (retry OR Shield Pass 2)
+        → Parser → END
 
         Returns:
             Compiled StateGraph ready for execution
@@ -99,6 +105,7 @@ class SwarmOrchestrator:
         workflow.add_node("aura", self._run_aura)
         workflow.add_node("verdict", self._run_verdict)
         workflow.add_node("shield_pass2", self._run_shield_pass2)
+        workflow.add_node("parser", self._run_parser)
 
         # Define the execution flow
         # Entry: Shield Pass 1 checks input safety
@@ -150,15 +157,18 @@ class SwarmOrchestrator:
             },
         )
 
-        # Shield Pass 2 → Check output safety
+        # Shield Pass 2 → Check output safety, then Parser
         workflow.add_conditional_edges(
             "shield_pass2",
             self._check_shield_pass2,
             {
                 "abort": END,  # Unsafe output - abort
-                "end": END,  # Safe output - deliver
+                "parser": "parser",  # Safe output - extract memories
             },
         )
+
+        # Parser → END (final step)
+        workflow.add_edge("parser", END)
 
         return workflow.compile()
 
@@ -227,10 +237,10 @@ class SwarmOrchestrator:
             state: Current swarm state
 
         Returns:
-            "abort" if unsafe, "end" if safe
+            "abort" if unsafe, "parser" if safe
         """
         is_safe = state.get("shield_pass2_safe", True)
-        return "end" if is_safe else "abort"
+        return "parser" if is_safe else "abort"
 
     def _should_retry_or_abort(self, state: SwarmState) -> str:
         """Determine if we should retry, abort, or finish.
@@ -545,6 +555,40 @@ class SwarmOrchestrator:
             "final_response": state.get("final_response"),
             "draft_response": state.get("draft_response"),
         }
+
+    async def _run_parser(self, state: SwarmState) -> dict[str, Any]:
+        """Execute Parser agent - Memory extraction.
+
+        Args:
+            state: Current swarm state
+
+        Returns:
+            State updates from Parser
+        """
+        # Get conversation history for pronoun resolution
+        history = state.get("conversation_history", [])
+
+        agent_input = AgentInput(
+            message="",  # Parser doesn't use user_input directly
+            context={
+                "user_message": state.get("user_input", ""),
+                "final_response": state.get("final_response", ""),
+                "conversation_history": history,
+            },
+        )
+        output = await self.parser.execute(agent_input)
+
+        memories = output.metadata.get("memories", [])
+
+        result = {
+            "extracted_memories": memories,
+            "memories_count": len(memories),
+            "agents_involved": state.get("agents_involved", []) + ["Parser"],
+            # Preserve final_response from Verdict (critical for UI)
+            "final_response": state.get("final_response"),
+        }
+
+        return result
 
     async def _run_sensor(self, state: SwarmState) -> dict[str, Any]:
         """Execute Sensor agent - Mood detection and P(tangent) calculation.
