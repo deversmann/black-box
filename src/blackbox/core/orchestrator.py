@@ -438,10 +438,18 @@ class SwarmOrchestrator:
         Returns:
             State updates from Verdict
         """
+        # Use enhanced_response if Aura ran, otherwise draft_response
+        aura_activated = state.get("aura_activated", False)
+        response_to_validate = (
+            state.get("enhanced_response", "")
+            if aura_activated
+            else state.get("draft_response", "")
+        )
+
         agent_input = AgentInput(
             message=state["user_input"],
             context={
-                "draft_response": state.get("draft_response", ""),
+                "draft_response": response_to_validate,
                 "intent_signals": state.get("intent_signals", ""),
                 "detail_level": state.get("detail_level", "BRIEF"),
             },
@@ -455,7 +463,7 @@ class SwarmOrchestrator:
         verdict_feedback = output.result  # Store feedback for retry
 
         if validation_passed:
-            final_response = state.get("draft_response", "")
+            final_response = response_to_validate
 
         # Increment retry count if validation failed
         # (This needs to happen in the node, not in the conditional function)
