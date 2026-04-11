@@ -3,8 +3,8 @@
 This file helps Claude Code understand the project context when you return.
 
 ## Project: Black Box Swarm
-**Status:** Phase 2 Wave 1 Complete - Shield & Sensor Added  
-**Date:** 2026-04-10
+**Status:** Phase 2 Complete - All 10 Agents Implemented  
+**Date:** 2026-04-11
 
 ## What This Is
 Multi-agent AI system for a personal learning assistant that learns, remembers, and develops personality through specialized agents coordinated via LangGraph.
@@ -56,11 +56,47 @@ Multi-agent AI system for a personal learning assistant that learns, remembers, 
   - Prevents truncation while encouraging concise responses
 - ✅ 43 tests passing, 87% coverage
 
+### Phase 2 Wave 2: COMPLETE ✅
+- ✅ **Vault agent** - Relational database queries (mock)
+  - Returns 5 hardcoded facts for Phase 2 testing
+  - Phase 3 will query real SQLite database
+  - Provides factual knowledge context to Command
+- ✅ **Probe agent** - Logic validation with veto power
+  - Three validation criteria: logical coherence, relevance to intent, tangent appropriateness
+  - Can APPROVE, VETO, or SUGGEST improvements
+  - Mood-aware: strict with HURRIED/FRUSTRATED users, lenient with JOVIAL
+  - Triggers Command retry on VETO (up to 2 retries)
+- ✅ **Conditional routing** - Probe → (retry OR Aura OR Verdict)
+- ✅ 62 tests passing, 85% coverage
+
+### Phase 2 Wave 3: COMPLETE ✅
+- ✅ **Aura agent** - Narrative enhancement (P(tangent) ≥ 0.7)
+  - Temperature 0.9 for creative flair
+  - Adds metaphors, sensory details, emotional language
+  - Maintains factual accuracy (decorates, doesn't distort)
+  - Only activates when P(tangent) crosses threshold
+- ✅ **Parser agent** - Memory extraction with atomic rewriting
+  - Extracts 6 memory types: user_fact, user_story, task_goal, preference, relationship, ai_logic
+  - Resolves pronouns using conversation context for self-contained memories
+  - Tags and importance scoring (0.0-1.0)
+  - Phase 2: extraction to JSON only (no storage)
+  - Phase 3: will write to The Ledger (SQLite + ChromaDB)
+- ✅ **UI enhancements**
+  - Extracted memories displayed in Debug Info panel
+  - Parser shows "Extracted N memories" in status bubble
+  - Agent flow includes all 10 agents: 🛡️₁ → 🔍 → 🎭 → 💾 → 📚 → 🧠 → 🔬 → (✨) → ✅ → 🛡️₂ → 🗂️
+- ✅ **Fixed state propagation** - memories_count and extracted_memories added to SwarmState
+- ✅ 70 tests passing, 85% coverage
+
 ### Next Steps
-**Phase 2 Wave 2: Vault + Probe**
-Add remaining validation and data agents:
-1. Vault (DB queries - mock initially) - [Issue #1](https://github.com/deversmann/black-box/issues/1)
-2. Probe (logic validation) - [Issue #2](https://github.com/deversmann/black-box/issues/2)
+**Phase 3: The Ledger - Memory System**
+Persistent long-term memory with semantic search:
+1. SQLite database schema implementation
+2. ChromaDB vector store integration
+3. Flash agent real memory retrieval (replace mock)
+4. Parser agent write to database
+5. Cooldown filter (24hr default)
+6. Memory consolidation and importance decay
 
 ## GitHub Project Management
 
@@ -73,15 +109,21 @@ Add remaining validation and data agents:
 - [Phase 5: Advanced Features](https://github.com/deversmann/black-box/milestone/5)
 
 **Wave Labels:**
-- `phase-2-wave-1` - Shield & Sensor (COMPLETE)
-- `phase-2-wave-2` - Vault & Probe (NEXT)
-- `phase-2-wave-3` - Aura & Parser
+- `phase-2-wave-1` - Shield & Sensor (COMPLETE ✅)
+- `phase-2-wave-2` - Vault & Probe (COMPLETE ✅)
+- `phase-2-wave-3` - Aura & Parser (COMPLETE ✅)
 
-**Open Issues:**
-- [#1 Add Vault agent](https://github.com/deversmann/black-box/issues/1) - Wave 2
-- [#2 Add Probe agent](https://github.com/deversmann/black-box/issues/2) - Wave 2
-- [#3 Add Aura agent](https://github.com/deversmann/black-box/issues/3) - Wave 3
-- [#4 Add Parser agent](https://github.com/deversmann/black-box/issues/4) - Wave 3
+**Closed Issues (Phase 2):**
+- [#1 Add Vault agent](https://github.com/deversmann/black-box/issues/1) - Wave 2 ✅
+- [#2 Add Probe agent](https://github.com/deversmann/black-box/issues/2) - Wave 2 ✅
+- [#3 Add Aura agent](https://github.com/deversmann/black-box/issues/3) - Wave 3 ✅
+- [#4 Add Parser agent](https://github.com/deversmann/black-box/issues/4) - Wave 3 ✅
+
+**Open Bug Issues:**
+- [#5 Associative Slider: Investigate behavior](https://github.com/deversmann/black-box/issues/5)
+- [#6 Double counting in retry scenarios](https://github.com/deversmann/black-box/issues/6)
+- [#7 Extract "Running..." logic](https://github.com/deversmann/black-box/issues/7)
+- [#8 Implement application-wide logging system](https://github.com/deversmann/black-box/issues/8)
 
 **Access via gh CLI:**
 - List issues: `gh issue list --milestone "Phase 2: Complete Agent Suite"`
@@ -137,10 +179,26 @@ Add remaining validation and data agents:
    - Calculates P(tangent) = base_slider + mood_modifier (clamped [0.0, 1.0])
    - Runs in parallel with Sieve for efficiency
 
-7. **Vault** - Relational DB queries (Planned)
-8. **Probe** - Logic validation, can veto (Planned)
-9. **Aura** - Narrative enhancement (P(tangent) ≥ 0.7) (Planned)
-10. **Parser** - Memory extraction & storage (Planned)
+7. **Vault** - Relational DB queries ✅
+   - Returns 5 mock facts for Phase 2
+   - Phase 3 will query real SQLite database
+   - Provides factual context to Command
+
+8. **Probe** - Logic validation with veto power ✅
+   - Validates logical coherence, relevance, tangent appropriateness
+   - Can APPROVE, VETO, or SUGGEST
+   - Triggers Command retry on VETO
+
+9. **Aura** - Narrative enhancement (P(tangent) ≥ 0.7) ✅
+   - Adds creative flair, metaphors, sensory details
+   - Only activates when P(tangent) crosses 0.7 threshold
+   - Maintains factual accuracy
+
+10. **Parser** - Memory extraction with atomic rewriting ✅
+    - Extracts 6 memory types with tags and importance
+    - Resolves pronouns for self-contained memories
+    - Phase 2: JSON extraction only (no storage)
+    - Phase 3: will write to The Ledger
 
 ### The Ledger (Memory System)
 Hybrid database:
@@ -199,25 +257,33 @@ All prompts emphasize:
 - Everyday language, not textbook language
 - Offer to expand rather than dumping everything
 
-### Future Implementation (Phase 2+)
+### Implemented Features (Phase 2)
 
-**Atomic Memory Rewriting:**
-Parser must make memories self-contained:
+**Atomic Memory Rewriting:** ✅
+Parser makes memories self-contained:
 ```
 Input: "It broke yesterday"
 Context: Previous mention of "Honda Shadow"
 Output: "The user's Honda Shadow motorcycle broke yesterday"
 ```
-Solution: Few-shot prompting + entity tracking + context injection
+Implementation: Conversation context injection + pronoun resolution prompting
+
+**Parallelization via LangGraph:** ✅
+- Sieve + Sensor run in parallel (asyncio.gather)
+- Conditional: Aura only if P(tangent) ≥ 0.7
+- Verdict → Shield Pass 2 (sequential for semantics)
+
+### Future Implementation (Phase 3+)
 
 **Cooldown Filter:**
 In-memory cache → DB check → background cleanup
 Prevents mentioning same memory twice in 24 hours (configurable)
 
-**Parallelization via LangGraph:**
-- Sieve + Sensor run in parallel
-- Verdict + Shield Pass 2 run in parallel
-- Conditional: Aura only if P(tangent) ≥ 0.7
+**The Ledger Storage:**
+- Parser writes extracted memories to SQLite + ChromaDB
+- Flash retrieves real memories via semantic search
+- Memory importance decay over time
+- Memory consolidation (merge similar memories)
 
 ## User Preferences
 
@@ -269,18 +335,34 @@ The user (project creator):
 
 ## When User Returns
 
-**Phase 2 Wave 1 is complete!** Recent session (2026-04-10):
-- ✅ Fixed all UI/UX bugs (sidebar updates, ghost messages, p_tangent slider)
-- ✅ Added Sieve expansion continuation detection
-- ✅ Created GitHub milestones and issues for remaining work
-- ✅ Committed UI/UX fixes (commit 387f2af)
+**Phase 2 is COMPLETE! 🎉** Recent sessions (2026-04-10 to 2026-04-11):
+- ✅ All 10 agents implemented and tested (70 tests passing)
+- ✅ Wave 1: Shield + Sensor (safety + mood detection)
+- ✅ Wave 2: Vault + Probe (facts + logic validation)
+- ✅ Wave 3: Aura + Parser (narrative enhancement + memory extraction)
+- ✅ Fixed state propagation bug (memories_count in SwarmState)
+- ✅ All GitHub issues closed for Phase 2
+
+**Commits:**
+- efe020a: Update documentation (Phase 2 Wave 1 status)
+- 387f2af: Fix UI/UX issues (sidebar, p_tangent, ghost messages)
+- 0e2396c: Add Shield and Sensor agents (Wave 1)
+- 6c8c26b: Add Vault and Probe agents (Wave 2)
+- b5f2a3d: Add Aura agent (Wave 3)
+- ece4791: Add Parser agent (Wave 3)
 
 **They'll likely want to:**
-1. Continue Phase 2 Wave 2: Vault + Probe agents
-   - [Issue #1: Add Vault agent](https://github.com/deversmann/black-box/issues/1)
-   - [Issue #2: Add Probe agent](https://github.com/deversmann/black-box/issues/2)
-2. Test the system with various conversation patterns
-3. Eventually: Wave 3 (Aura + Parser), then Phase 3 (The Ledger)
+1. **Test the complete system** - All 10 agents working together
+2. **Address open bugs:**
+   - [#5 Associative Slider behavior](https://github.com/deversmann/black-box/issues/5)
+   - [#6 Double counting in retries](https://github.com/deversmann/black-box/issues/6)
+   - [#7 Extract "Running..." logic](https://github.com/deversmann/black-box/issues/7)
+   - [#8 Implement logging system](https://github.com/deversmann/black-box/issues/8)
+3. **Begin Phase 3: The Ledger** - Persistent memory with SQLite + ChromaDB
+   - Database schema implementation
+   - Flash agent real memory retrieval
+   - Parser agent write to database
+   - Cooldown filter
 
 **Remember:** 
 - User values detailed planning before coding
@@ -315,5 +397,5 @@ The user (project creator):
 
 ---
 
-**Last Session:** Phase 2 Wave 1 UI/UX bug fixes + GitHub project setup (2026-04-10)
-**Next Session:** Begin Phase 2 Wave 2 - Vault + Probe agents ([view issues](https://github.com/deversmann/black-box/milestone/2))
+**Last Session:** Phase 2 Complete - All 10 agents implemented (Wave 1, 2, 3) (2026-04-11)
+**Next Session:** Address open bugs or begin Phase 3 - The Ledger ([view issues](https://github.com/deversmann/black-box/issues))

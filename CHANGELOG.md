@@ -2,9 +2,102 @@
 
 All notable changes to the Black Box Swarm project will be documented in this file.
 
-## [0.2.0] - 2026-04-10
+## [0.2.0] - 2026-04-11
 
-### Phase 2 Wave 1: Shield & Sensor - Complete
+### Phase 2 Complete: All 10 Agents Implemented
+
+All three waves of Phase 2 are now complete, implementing all 10 agents in the swarm.
+
+---
+
+### Phase 2 Wave 3: Aura & Parser - Complete (2026-04-11)
+
+#### Added
+- **Aura agent**: Narrative enhancement for high P(tangent) scenarios
+  - Only activates when P(tangent) ≥ 0.7 (configurable threshold)
+  - Temperature 0.9 for creative, narrative-rich responses
+  - Adds metaphors, sensory details, emotional language
+  - Maintains factual accuracy (decorates without distorting)
+  - Mood-aware enhancement (adjusts style based on user mood)
+
+- **Parser agent**: Memory extraction with atomic rewriting
+  - Extracts 6 memory types: user_fact, user_story, task_goal, preference, relationship, ai_logic
+  - Atomic memory rewriting: resolves pronouns using conversation context
+  - Makes memories self-contained (e.g., "It broke" → "The user's Honda Shadow motorcycle broke")
+  - Tags: 2-5 relevant tags per memory for semantic search
+  - Importance scoring: 0.0-1.0 scale for memory prioritization
+  - Phase 2: JSON extraction only (no storage)
+  - Phase 3: Will write to The Ledger (SQLite + ChromaDB)
+
+- **Conditional routing**: Enhanced graph flow
+  - Probe → (retry Command OR Aura OR Verdict)
+  - Aura only runs when P(tangent) ≥ 0.7
+  - Verdict validates enhanced_response when Aura activated
+
+- **UI enhancements**:
+  - Parser displays "Extracted N memories" in status bubble
+  - Debug Info panel shows extracted memories JSON
+  - Agent flow includes: 🛡️₁ → 🔍 → 🎭 → 💾 → 📚 → 🧠 → 🔬 → (✨) → ✅ → 🛡️₂ → 🗂️
+  - Aura emoji (✨) shows conditionally based on P(tangent)
+  - Parser emoji (🗂️) always appears as final step
+
+- **Test coverage**: Added comprehensive tests for new agents
+  - Aura agent tests: 7 tests covering activation, enhancement, mood awareness
+  - Parser agent tests: 8 tests covering memory extraction, atomic rewriting, JSON handling
+  - 70 tests passing, 85% coverage
+
+#### Fixed
+- **Aura P(tangent) display**: Aura now includes p_tangent in return dict for UI display
+- **Verdict using wrong response**: Verdict now checks enhanced_response when Aura activated
+- **Parser response loss**: Parser now preserves final_response from previous agents
+- **State propagation bug**: Added memories_count and extracted_memories to SwarmState TypedDict
+  - LangGraph only merges fields defined in state schema
+  - Critical fix for UI displaying "Extracted 0 memories" despite successful extraction
+
+#### Changed
+- **Graph flow**: Updated to Shield Pass 1 → [Sieve + Sensor] → Flash → Vault → Command → Probe → (retry OR Aura OR Verdict) → (retry OR Shield Pass 2) → Parser → END
+
+---
+
+### Phase 2 Wave 2: Vault & Probe - Complete (2026-04-11)
+
+#### Added
+- **Vault agent**: Relational database fact retrieval
+  - Returns 5 hardcoded facts for Phase 2 testing
+  - Phase 3 will query real SQLite database
+  - Provides factual knowledge context to Command
+  - Facts include: project history, domain expertise, activity patterns
+
+- **Probe agent**: Logic validation with veto power
+  - Three validation criteria: logical coherence, relevance to intent, tangent appropriateness
+  - Three decision types: APPROVE, VETO, SUGGEST
+  - Can veto responses and trigger Command retry (up to 2 retries)
+  - Mood-aware validation:
+    - Strict with HURRIED/FRUSTRATED users (precision over creativity)
+    - Lenient with JOVIAL users (allows more tangents)
+  - Reasoning transparency: explains validation decision
+
+- **Conditional routing**: Enhanced retry logic
+  - Probe → retry Command (if VETO and retries remain)
+  - Probe → Aura (if APPROVE and P(tangent) ≥ 0.7)
+  - Probe → Verdict (if APPROVE and P(tangent) < 0.7)
+
+- **UI enhancements**:
+  - Vault emoji (📚) in agent flow display
+  - Probe emoji (🔬) in agent flow display
+  - Probe shows decision and reasoning in status bubble
+
+- **Test coverage**: Added comprehensive tests for new agents
+  - Vault agent tests: 4 tests covering initialization and fact retrieval
+  - Probe agent tests: 8 tests covering all decision types, mood awareness, criteria validation
+  - 62 tests passing, 85% coverage
+
+#### Changed
+- **Graph flow**: Updated to include Vault after Flash and Probe after Command
+
+---
+
+### Phase 2 Wave 1: Shield & Sensor - Complete (2026-04-10)
 
 #### Added
 - **Shield agent**: Two-pass safety validation system

@@ -4,7 +4,7 @@ A sophisticated multi-agent AI system designed as a personal learning assistant 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Phase 2 Wave 1](https://img.shields.io/badge/status-Phase%202%20Wave%201%20Complete-green.svg)](https://github.com/deversmann/black-box/milestone/2)
+[![Phase 2 Complete](https://img.shields.io/badge/status-Phase%202%20Complete-brightgreen.svg)](https://github.com/deversmann/black-box/milestone/2)
 [![Issues](https://img.shields.io/github/issues/deversmann/black-box)](https://github.com/deversmann/black-box/issues)
 
 ## What is Black Box Swarm?
@@ -118,8 +118,8 @@ The **Aura** agent (storyteller) activates when `P(tangent) ≥ 0.7`, transformi
 - ✅ Agent icons and descriptions in UI
 - ✅ Foundation for parallel agent visualization
 
-### 🔄 Phase 2: Complete Agent Suite (IN PROGRESS)
-**Goal:** All 11 agents implemented with full personality system
+### ✅ Phase 2: Complete Agent Suite (COMPLETE - 2026-04-11)
+**Goal:** All 10 agents implemented with full personality system
 
 #### ✅ Wave 1: Shield + Sensor (COMPLETE - 2026-04-10)
 - ✅ **Shield agent** - Two-pass safety validation (input + output)
@@ -130,23 +130,52 @@ The **Aura** agent (storyteller) activates when `P(tangent) ≥ 0.7`, transformi
 - ✅ Sieve expansion continuation pattern detection
 - ✅ 43 tests passing, 87% coverage
 
-#### 📋 Wave 2: Vault + Probe (NEXT - [View Issues](https://github.com/deversmann/black-box/milestone/2))
-- [ ] **Vault agent** - Relational database queries ([#1](https://github.com/deversmann/black-box/issues/1))
-- [ ] **Probe agent** - Logic validation with veto power ([#2](https://github.com/deversmann/black-box/issues/2))
+#### ✅ Wave 2: Vault + Probe (COMPLETE - 2026-04-11)
+- ✅ **Vault agent** - Relational database queries (mock for Phase 2)
+- ✅ **Probe agent** - Logic validation with veto power
+- ✅ Conditional routing (Probe → retry OR Aura OR Verdict)
+- ✅ Mood-aware validation (strict with HURRIED, lenient with JOVIAL)
+- ✅ 62 tests passing, 85% coverage
 
-#### 📋 Wave 3: Aura + Parser (PLANNED - [View Issues](https://github.com/deversmann/black-box/milestone/2))
-- [ ] **Aura agent** - Narrative enhancement ([#3](https://github.com/deversmann/black-box/issues/3))
-- [ ] **Parser agent** - Memory extraction ([#4](https://github.com/deversmann/black-box/issues/4))
+#### ✅ Wave 3: Aura + Parser (COMPLETE - 2026-04-11)
+- ✅ **Aura agent** - Narrative enhancement (activates at P(tangent) ≥ 0.7)
+- ✅ **Parser agent** - Memory extraction with atomic rewriting
+- ✅ 6 memory types with tags and importance scores
+- ✅ Extracted memories displayed in Debug Info panel
+- ✅ Fixed state propagation bug (memories_count in SwarmState)
+- ✅ 70 tests passing, 85% coverage
 
-### 📋 Phase 3: The Ledger (Week 5-6)
+### 📋 Phase 3: The Ledger (NEXT - [Milestone](https://github.com/deversmann/black-box/milestone/3))
 Persistent memory with semantic search and cooldown filter
 
-### 📋 Phase 4: Production Readiness (Week 7-8)
-Testing, monitoring, Docker deployment, documentation
-- **LangGraph DAG visualization** for execution flow display
+**Planned Features:**
+- SQLite database schema for relational memory storage
+- ChromaDB vector store for semantic similarity search
+- Flash agent real memory retrieval (replace mock)
+- Parser agent write to database
+- Cooldown filter (24hr default to prevent repetition)
+- Memory consolidation and importance decay
 
-### 📋 Phase 5: Advanced Features (Week 9-10)
+### 📋 Phase 4: Production Readiness ([Milestone](https://github.com/deversmann/black-box/milestone/4))
+Testing, monitoring, Docker deployment, documentation
+
+**Planned Features:**
+- Comprehensive integration tests
+- LangGraph DAG visualization for execution flow display
+- Application-wide logging system
+- Docker + Docker Compose deployment
+- CI/CD pipeline
+- Performance monitoring and metrics
+
+### 📋 Phase 5: Advanced Features ([Milestone](https://github.com/deversmann/black-box/milestone/5))
 Memory consolidation, caching, plugin system, preference learning
+
+**Planned Features:**
+- Advanced memory consolidation strategies
+- Response caching for common queries
+- Plugin system for custom agents
+- Adaptive preference learning
+- Multi-user support
 
 ## Quick Start
 
