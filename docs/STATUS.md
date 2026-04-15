@@ -25,7 +25,7 @@
 
 **Delivered:**
 - Conceptual architecture with decoupled swarm pattern
-- Complete technical specification (SPEC.md → now in docs/)
+- Complete technical specification (now in docs/architecture/ and docs/guides/)
 - Database schemas for The Ledger
 - Configuration design with YAML-based agent configs
 - Repository setup with MIT license
