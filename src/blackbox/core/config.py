@@ -44,4 +44,11 @@ def load_config(config_path: str | None = None) -> Config:
     with open(config_path) as f:
         config_data = yaml.safe_load(f)
 
-    return Config(**config_data)
+    config = Config(**config_data)
+
+    # Initialize logging system
+    from blackbox.core.logging import configure_logging
+
+    configure_logging(config)
+
+    return config

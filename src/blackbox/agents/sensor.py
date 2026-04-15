@@ -110,7 +110,7 @@ REASONING: Very brief one-word question suggests time pressure
 
 Be confident in your assessments but use lower confidence (0.6-0.7) for ambiguous cases."""
 
-    async def execute(self, agent_input: AgentInput) -> AgentOutput:
+    async def _execute_impl(self, agent_input: AgentInput) -> AgentOutput:
         """Execute mood detection.
 
         Args:

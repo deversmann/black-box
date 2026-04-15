@@ -107,7 +107,7 @@ could before."
 
 Notice: Same facts, more engaging delivery."""
 
-    async def execute(self, agent_input: AgentInput) -> AgentOutput:
+    async def _execute_impl(self, agent_input: AgentInput) -> AgentOutput:
         """Execute narrative enhancement.
 
         Args:

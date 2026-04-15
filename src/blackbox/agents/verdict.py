@@ -56,7 +56,7 @@ FAIL: [what's wrong - be specific]
 
 Priority order: Truncation > Length > Tone > Completeness"""
 
-    async def execute(self, agent_input: AgentInput) -> AgentOutput:
+    async def _execute_impl(self, agent_input: AgentInput) -> AgentOutput:
         """Execute response validation.
 
         Args:

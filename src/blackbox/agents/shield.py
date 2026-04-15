@@ -97,7 +97,7 @@ Examples:
 
 Be thoughtful but decisive. When in doubt on {safety_profile} mode, err on the side of {"blocking" if safety_profile == "strict" else "allowing with context"}."""
 
-    async def execute(self, agent_input: AgentInput) -> AgentOutput:
+    async def _execute_impl(self, agent_input: AgentInput) -> AgentOutput:
         """Execute safety validation.
 
         Args:

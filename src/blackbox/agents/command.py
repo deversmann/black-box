@@ -85,7 +85,7 @@ You're chatting, not teaching a class."""
             )
 
 
-    async def execute(self, agent_input: AgentInput) -> AgentOutput:
+    async def _execute_impl(self, agent_input: AgentInput) -> AgentOutput:
         """Execute response synthesis.
 
         Args:

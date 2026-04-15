@@ -41,7 +41,7 @@ memory context provided by Flash.
 In Phase 2, you return mock hardcoded facts for testing.
 In Phase 3, you will perform SQL queries against the relational database."""
 
-    async def execute(self, agent_input: AgentInput) -> AgentOutput:
+    async def _execute_impl(self, agent_input: AgentInput) -> AgentOutput:
         """Execute fact retrieval (mock).
 
         Args:

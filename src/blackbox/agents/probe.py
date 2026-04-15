@@ -91,7 +91,7 @@ REASONING: [one-sentence explanation]
 Be a constructive critic. Your goal is quality control, not perfection.
 If the response accomplishes its purpose, APPROVE it."""
 
-    async def execute(self, agent_input: AgentInput) -> AgentOutput:
+    async def _execute_impl(self, agent_input: AgentInput) -> AgentOutput:
         """Execute logic validation.
 
         Args:

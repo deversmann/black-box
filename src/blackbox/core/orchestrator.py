@@ -17,6 +17,7 @@ from blackbox.agents.vault import Vault
 from blackbox.agents.verdict import Verdict
 from blackbox.core.agent import AgentConfig, AgentInput
 from blackbox.core.config import Config
+from blackbox.core.logging import get_logger
 from blackbox.core.state import SwarmState
 from blackbox.models.client import OpenRouterClient
 
@@ -76,6 +77,22 @@ class SwarmOrchestrator:
         self.parser = Parser(
             AgentConfig(**config.agents["parser"]),
             client,
+        )
+
+        # Initialize logger
+        self.logger = get_logger("blackbox.orchestrator")
+
+        # Log swarm initialization
+        self.logger.info(
+            "Swarm orchestrator initialized",
+            extra={
+                "event_type": "orchestrator_initialized",
+                "data": {
+                    "safety_profile": config.safety["default_profile"],
+                    "agent_count": 10,
+                    "agents": ["Shield", "Sieve", "Sensor", "Flash", "Vault", "Command", "Probe", "Aura", "Verdict", "Parser"],
+                },
+            },
         )
 
         # Build the graph
@@ -199,6 +216,18 @@ class SwarmOrchestrator:
 
         # Probe vetoed → retry if attempts remain
         if not probe_approved and retry_count < max_retries:
+            self.logger.info(
+                "Routing decision: retry Command after Probe veto",
+                extra={
+                    "event_type": "orchestrator_routing_decision",
+                    "data": {
+                        "decision": "retry",
+                        "reason": "probe_veto",
+                        "retry_count": retry_count,
+                        "probe_reasoning": state.get("probe_reasoning", ""),
+                    },
+                },
+            )
             return "retry"
 
         # Probe approved → check if Aura should activate
@@ -206,8 +235,32 @@ class SwarmOrchestrator:
         aura_threshold = self.config.associative.get("aura_activation_threshold", 0.7)
 
         if p_tangent >= aura_threshold:
+            self.logger.info(
+                "Routing decision: activate Aura for narrative enhancement",
+                extra={
+                    "event_type": "orchestrator_routing_decision",
+                    "data": {
+                        "decision": "aura",
+                        "reason": "high_p_tangent",
+                        "p_tangent": p_tangent,
+                        "threshold": aura_threshold,
+                    },
+                },
+            )
             return "aura"  # High P(tangent) - enhance response
 
+        self.logger.debug(
+            "Routing decision: skip Aura, proceed to Verdict",
+            extra={
+                "event_type": "orchestrator_routing_decision",
+                "data": {
+                    "decision": "verdict",
+                    "reason": "low_p_tangent",
+                    "p_tangent": p_tangent,
+                    "threshold": aura_threshold,
+                },
+            },
+        )
         return "verdict"  # Low P(tangent) - skip to validation
 
     def _should_retry_after_verdict(self, state: SwarmState) -> str:
@@ -225,9 +278,32 @@ class SwarmOrchestrator:
 
         # Verdict failed → retry if attempts remain
         if not validation_passed and retry_count < max_retries:
+            self.logger.warning(
+                "Routing decision: retry Command after Verdict failure",
+                extra={
+                    "event_type": "orchestrator_retry_triggered",
+                    "data": {
+                        "decision": "retry",
+                        "reason": "verdict_failure",
+                        "retry_count": retry_count,
+                        "verdict_feedback": state.get("verdict_feedback", ""),
+                    },
+                },
+            )
             return "retry"
 
         # Verdict passed or max retries exceeded → continue to Shield Pass 2
+        self.logger.debug(
+            "Routing decision: proceed to Shield Pass 2",
+            extra={
+                "event_type": "orchestrator_routing_decision",
+                "data": {
+                    "decision": "continue",
+                    "validation_passed": validation_passed,
+                    "retry_count": retry_count,
+                },
+            },
+        )
         return "continue"
 
     def _check_shield_pass2(self, state: SwarmState) -> str:
@@ -798,6 +874,21 @@ class SwarmOrchestrator:
             "shield_pass2_safe": False,
         }
 
+        # Log process start
+        self.logger.info(
+            "Processing user message",
+            extra={
+                "event_type": "orchestrator_process_start",
+                "data": {
+                    "session_id": session_id,
+                    "input_length": len(user_input),
+                    "safety_profile": safety_profile or self.config.safety["default_profile"],
+                    "p_tangent": p_tangent if p_tangent is not None else self.config.associative["default_p_tangent"],
+                },
+                "correlation_id": session_id,
+            },
+        )
+
         # Track previous agents_involved list length to detect new completions
         previous_agent_count = 0
         # Accumulate the full state from streaming (nodes return partial updates)
@@ -829,6 +920,24 @@ class SwarmOrchestrator:
 
                     # Update count
                     previous_agent_count = current_agent_count
+
+        # Log process completion
+        self.logger.info(
+            "Processing completed",
+            extra={
+                "event_type": "orchestrator_process_complete",
+                "data": {
+                    "session_id": session_id,
+                    "agents_executed": len(accumulated_state.get("agents_involved", [])),
+                    "validation_passed": accumulated_state.get("validation_passed", False),
+                    "shield_pass1_safe": accumulated_state.get("shield_pass1_safe", False),
+                    "shield_pass2_safe": accumulated_state.get("shield_pass2_safe", False),
+                    "retry_count": accumulated_state.get("retry_count", 0),
+                    "aura_activated": accumulated_state.get("aura_activated", False),
+                },
+                "correlation_id": session_id,
+            },
+        )
 
         # Yield final event with the accumulated state
         # DO NOT call ainvoke() again - that would re-run the entire graph!

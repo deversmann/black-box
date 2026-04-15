@@ -52,7 +52,7 @@ Your role: Search The Ledger (persistent memory) for relevant context.
 In Phase 1, you return mock hardcoded memories for testing.
 In Phase 3, you will perform semantic vector search."""
 
-    async def execute(self, agent_input: AgentInput) -> AgentOutput:
+    async def _execute_impl(self, agent_input: AgentInput) -> AgentOutput:
         """Execute memory retrieval (mock).
 
         Args:

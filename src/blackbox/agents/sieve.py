@@ -73,7 +73,7 @@ INTENT:
 
 Keep it concise. Do not elaborate or answer the question - just distill the intent and detect detail level."""
 
-    async def execute(self, agent_input: AgentInput) -> AgentOutput:
+    async def _execute_impl(self, agent_input: AgentInput) -> AgentOutput:
         """Execute intent distillation.
 
         Args:

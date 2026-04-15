@@ -1,10 +1,13 @@
 """OpenRouter API client for model interactions."""
 
 import os
+import time
 from typing import Any
 
 import httpx
 from pydantic import BaseModel, Field
+
+from blackbox.core.logging import get_logger
 
 
 class OpenRouterMessage(BaseModel):
@@ -68,6 +71,8 @@ class OpenRouterClient:
             timeout=30.0,
         )
 
+        self.logger = get_logger("blackbox.api_client")
+
     async def chat_completion(
         self,
         model: str,
@@ -97,6 +102,22 @@ class OpenRouterClient:
         )
 
         for attempt in range(self.retry_attempts):
+            start_time = time.perf_counter()
+
+            self.logger.info(
+                "API call started",
+                extra={
+                    "event_type": "api_call_start",
+                    "data": {
+                        "model": model,
+                        "temperature": temperature,
+                        "max_tokens": max_tokens,
+                        "attempt": attempt + 1,
+                        "message_count": len(messages),
+                    },
+                },
+            )
+
             try:
                 response = await self.client.post(
                     "/chat/completions",
@@ -105,15 +126,68 @@ class OpenRouterClient:
                 response.raise_for_status()
 
                 data = response.json()
+                latency_ms = (time.perf_counter() - start_time) * 1000
+
+                # Extract usage stats if available
+                usage = data.get("usage", {})
+
+                self.logger.info(
+                    "API call completed",
+                    extra={
+                        "event_type": "api_call_complete",
+                        "data": {
+                            "model": model,
+                            "latency_ms": round(latency_ms, 2),
+                            "attempt": attempt + 1,
+                            "prompt_tokens": usage.get("prompt_tokens"),
+                            "completion_tokens": usage.get("completion_tokens"),
+                            "total_tokens": usage.get("total_tokens"),
+                        },
+                    },
+                )
+
                 return data["choices"][0]["message"]["content"]
 
             except httpx.HTTPError as e:
+                latency_ms = (time.perf_counter() - start_time) * 1000
+                will_retry = attempt < self.retry_attempts - 1
+
+                self.logger.error(
+                    f"API call failed: {type(e).__name__}",
+                    extra={
+                        "event_type": "api_call_error",
+                        "data": {
+                            "model": model,
+                            "error_type": type(e).__name__,
+                            "error_message": str(e),
+                            "latency_ms": round(latency_ms, 2),
+                            "attempt": attempt + 1,
+                            "will_retry": will_retry,
+                        },
+                    },
+                )
+
                 if attempt == self.retry_attempts - 1:
                     raise
+
+                # Log retry backoff
+                delay = self.retry_delay * (attempt + 1)
+                self.logger.info(
+                    f"Retrying after {delay}s backoff",
+                    extra={
+                        "event_type": "api_retry_backoff",
+                        "data": {
+                            "model": model,
+                            "delay_seconds": delay,
+                            "next_attempt": attempt + 2,
+                        },
+                    },
+                )
+
                 # Wait before retrying
                 import asyncio
 
-                await asyncio.sleep(self.retry_delay * (attempt + 1))
+                await asyncio.sleep(delay)
 
         raise RuntimeError("Failed to complete chat request after all retries")
 

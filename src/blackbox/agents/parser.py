@@ -136,7 +136,7 @@ Return a **valid JSON array** of memory objects. Each memory must have:
 
 Your output must be **valid JSON** that can be parsed directly."""
 
-    async def execute(self, agent_input: AgentInput) -> AgentOutput:
+    async def _execute_impl(self, agent_input: AgentInput) -> AgentOutput:
         """Extract atomic memories from interaction.
 
         Args:
