@@ -152,7 +152,7 @@ async def process_message_stream(
         Events from the swarm processing
 
     Returns:
-        Final result dictionary from swarm processing
+        Tuple of (final_state, agent_activity_lines)
     """
     orchestrator = get_swarm()
 
@@ -202,6 +202,7 @@ async def process_message_stream(
 
     try:
         final_state = None
+        agent_activity_lines = []  # Collect agent status lines for persistence
 
         # Expected agent flow for showing "Running..." indicators
         # Note: Command, Probe, and Verdict can appear multiple times (retries)
@@ -261,11 +262,13 @@ async def process_message_stream(
                 # Show retry indicator if this agent has run before in this execution
                 if agent_count_in_execution > 1:
                     # This is a retry
-                    status_container.write(
-                        f"{icon} {agent_name} (🔁 Retry #{agent_count_in_execution - 1}): {description}"
-                    )
+                    activity_line = f"{icon} {agent_name} (🔁 Retry #{agent_count_in_execution - 1}): {description}"
+                    status_container.write(activity_line)
+                    agent_activity_lines.append(activity_line)
                 else:
-                    status_container.write(f"{icon} {agent_name}: {description}")
+                    activity_line = f"{icon} {agent_name}: {description}"
+                    status_container.write(activity_line)
+                    agent_activity_lines.append(activity_line)
 
                 # Predict next agent based on current state
                 state = event.get("state", {})
@@ -325,7 +328,7 @@ async def process_message_stream(
 
                 status_container.update(label="✨ Complete!", state="complete")
 
-        return final_state
+        return final_state, agent_activity_lines
 
     finally:
         # Clean up the httpx client
@@ -420,6 +423,13 @@ def main() -> None:
     # Display chat history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
+            # Show agent activity status bubble BEFORE the response (if present)
+            if message.get("agent_activity"):
+                with st.status("🧠 Agent Activity", state="complete", expanded=False):
+                    for activity_line in message["agent_activity"]:
+                        st.markdown(activity_line)
+
+            # Then show the message content
             st.markdown(message["content"])
 
     # Chat input
@@ -432,9 +442,6 @@ def main() -> None:
 
         # Process through swarm
         with st.chat_message("assistant"):
-            # Create placeholder to prevent ghost message duplication
-            response_placeholder = st.empty()
-
             # Get last 10 turns (20 messages) for sliding window
             # Don't include the current message (it's passed separately)
             history = (
@@ -443,10 +450,10 @@ def main() -> None:
                 else st.session_state.messages
             )
 
-            # Show agent progress with status indicator
+            # Show agent progress with status indicator FIRST (so it appears before response)
             with st.status("🧠 Processing through the swarm...", expanded=True) as status:
                 # Run async process with streaming updates
-                result = asyncio.run(
+                result, agent_activity = asyncio.run(
                     process_message_stream(
                         prompt=prompt,
                         session_id=st.session_state.session_id,
@@ -457,12 +464,16 @@ def main() -> None:
                     )
                 )
 
+            # Create response placeholder AFTER status bubble (appears below it)
+            response_placeholder = st.empty()
+
             # Handle case where processing failed
             if result is None:
                 st.error("❌ Processing failed - no result returned")
                 st.session_state.messages.append({
                     "role": "assistant",
-                    "content": "I apologize, but processing failed. Please try again."
+                    "content": "I apologize, but processing failed. Please try again.",
+                    "agent_activity": agent_activity if agent_activity else []
                 })
             else:
                 # Get response
@@ -479,8 +490,12 @@ def main() -> None:
                 # Display response in placeholder (prevents ghost duplication)
                 response_placeholder.markdown(response)
 
-                # Store in chat history
-                st.session_state.messages.append({"role": "assistant", "content": response})
+                # Store in chat history with agent activity
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": response,
+                    "agent_activity": agent_activity
+                })
 
                 # Show validation status
                 if not result.get("validation_passed", True):
