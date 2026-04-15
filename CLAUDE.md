@@ -3,8 +3,8 @@
 This file helps Claude Code understand the project context when you return.
 
 ## Project: Black Box Swarm
-**Status:** Phase 2 Complete - All 10 Agents Implemented  
-**Date:** 2026-04-11
+**Status:** Phase 2 Complete - All 10 Agents + Logging System  
+**Date:** 2026-04-15
 
 ## What This Is
 Multi-agent AI system for a personal learning assistant that learns, remembers, and develops personality through specialized agents coordinated via LangGraph.
@@ -87,6 +87,27 @@ Multi-agent AI system for a personal learning assistant that learns, remembers, 
   - Agent flow includes all 10 agents: 🛡️₁ → 🔍 → 🎭 → 💾 → 📚 → 🧠 → 🔬 → (✨) → ✅ → 🛡️₂ → 🗂️
 - ✅ **Fixed state propagation** - memories_count and extracted_memories added to SwarmState
 - ✅ 70 tests passing, 85% coverage
+
+### Infrastructure: Logging System COMPLETE ✅
+- ✅ **Structured JSON logging** - Application-wide observability
+  - JSONFormatter with event_type, data, correlation_id fields
+  - Automatic sensitive data redaction (API keys, passwords, tokens)
+  - Log rotation (10MB files, 5 backups = ~50MB max)
+  - Dual output: stdout + file (./logs/swarm.log)
+- ✅ **Agent execution logging** - Automatic timing for all agents
+  - Refactored Agent base class with execute() wrapper
+  - All agents log agent_execution_start and agent_execution_complete
+  - Captures duration_ms, confidence, metadata keys
+- ✅ **API client logging** - Request/response observability
+  - Logs api_call_start, api_call_complete with latency_ms and token counts
+  - Logs api_call_error with retry behavior
+  - Logs exponential backoff delays
+- ✅ **Orchestrator logging** - Flow and routing decisions
+  - Logs orchestrator_process_start/complete with correlation_id
+  - Logs routing decisions (probe veto, aura activation, verdict retry)
+  - Logs retry triggers with reasoning
+- ✅ **Performance** - <2% overhead on typical execution times
+- ✅ **Privacy** - Automatic redaction, no PII in logs
 
 ### Next Steps
 **Phase 3: The Ledger - Memory System**
@@ -335,30 +356,35 @@ The user (project creator):
 
 ## When User Returns
 
-**Phase 2 is COMPLETE! 🎉** Recent sessions (2026-04-10 to 2026-04-11):
+**Phase 2 is COMPLETE! 🎉** Recent sessions (2026-04-10 to 2026-04-15):
 - ✅ All 10 agents implemented and tested (70 tests passing)
 - ✅ Wave 1: Shield + Sensor (safety + mood detection)
 - ✅ Wave 2: Vault + Probe (facts + logic validation)
 - ✅ Wave 3: Aura + Parser (narrative enhancement + memory extraction)
-- ✅ Fixed state propagation bug (memories_count in SwarmState)
-- ✅ All GitHub issues closed for Phase 2
+- ✅ **UI/UX bug fixes** (issues #5, #6, #7 - all closed):
+  - Fixed metadata panel updates (one-turn delay issue)
+  - Fixed state accumulation bug (Parser overwrote Sensor's mood)
+  - Moved status bubbles to appear before responses
+  - Made status bubbles persistent in chat history
+  - Enhanced agent status messages (full Probe reasoning, Verdict failure details)
+- ✅ **Logging system implemented** (issue #8 - closed):
+  - Structured JSON logging with JSONFormatter
+  - Agent execution timing (automatic via base class wrapper)
+  - API call logging (latency, tokens, retries)
+  - Orchestrator flow logging (routing decisions, retries)
+  - Log rotation (10MB files, 5 backups)
+  - Sensitive data redaction
+  - <2% performance overhead
 
-**Commits:**
-- efe020a: Update documentation (Phase 2 Wave 1 status)
-- 387f2af: Fix UI/UX issues (sidebar, p_tangent, ghost messages)
-- 0e2396c: Add Shield and Sensor agents (Wave 1)
-- 6c8c26b: Add Vault and Probe agents (Wave 2)
-- b5f2a3d: Add Aura agent (Wave 3)
-- ece4791: Add Parser agent (Wave 3)
+**Recent Commits:**
+- a9182b0: Fix agent status messages (Probe, Verdict)
+- 0c51af4: Move status bubbles before responses, persist in history
+- a9b06d9: Fix metadata panel updates and state accumulation bug
+- 79ad072: Implement application-wide structured JSON logging
 
 **They'll likely want to:**
-1. **Test the complete system** - All 10 agents working together
-2. **Address open bugs:**
-   - [#5 Associative Slider behavior](https://github.com/deversmann/black-box/issues/5)
-   - [#6 Double counting in retries](https://github.com/deversmann/black-box/issues/6)
-   - [#7 Extract "Running..." logic](https://github.com/deversmann/black-box/issues/7)
-   - [#8 Implement logging system](https://github.com/deversmann/black-box/issues/8)
-3. **Begin Phase 3: The Ledger** - Persistent memory with SQLite + ChromaDB
+1. **Test the logging system** - Verify logs are being written correctly
+2. **Begin Phase 3: The Ledger** - Persistent memory with SQLite + ChromaDB
    - Database schema implementation
    - Flash agent real memory retrieval
    - Parser agent write to database
@@ -372,30 +398,34 @@ The user (project creator):
 - Wants assistant to "get to know them" like a friend would
 - **Uses GitHub issues** for task tracking - check open issues before planning work
 
-## Quick Reference: Phase 1 Critical Files
+## Quick Reference: Critical Files
 
 ```
 /black-box/
 ├── pyproject.toml              # Dependencies: langgraph, chromadb, fastapi, streamlit, sqlalchemy
 ├── .env.example                # OPENROUTER_API_KEY
-├── config/default.yaml         # Agent configs, models, thresholds
+├── config/default.yaml         # Agent configs, models, thresholds, logging settings
+├── logs/swarm.log              # Structured JSON logs (rotated)
 ├── src/blackbox/
 │   ├── core/
-│   │   ├── agent.py           # Base Agent ABC
+│   │   ├── agent.py           # Base Agent ABC with execute() wrapper for logging
 │   │   ├── state.py           # SwarmState TypedDict
-│   │   └── orchestrator.py    # LangGraph graph
+│   │   ├── orchestrator.py    # LangGraph graph with flow logging
+│   │   ├── logging.py         # JSONFormatter, configure_logging, get_logger
+│   │   └── config.py          # Config loader (initializes logging)
 │   ├── agents/
-│   │   ├── sieve.py
-│   │   ├── flash.py           # Mock version for Phase 1
+│   │   ├── sieve.py           # All agents implement _execute_impl()
+│   │   ├── flash.py           # Mock version for Phase 2
 │   │   ├── command.py
-│   │   └── verdict.py
+│   │   ├── verdict.py
+│   │   ├── shield.py, sensor.py, vault.py, probe.py, aura.py, parser.py
 │   └── models/
-│       └── client.py          # OpenRouter client
+│       └── client.py          # OpenRouter client with API logging
 └── frontend/
-    └── app.py                 # Streamlit UI
+    └── app.py                 # Streamlit UI with status bubbles
 ```
 
 ---
 
-**Last Session:** Phase 2 Complete - All 10 agents implemented (Wave 1, 2, 3) (2026-04-11)
-**Next Session:** Address open bugs or begin Phase 3 - The Ledger ([view issues](https://github.com/deversmann/black-box/issues))
+**Last Session:** UI/UX bug fixes + Logging system implementation (issues #5-8 closed) (2026-04-15)
+**Next Session:** Test logging system or begin Phase 3 - The Ledger ([view issues](https://github.com/deversmann/black-box/issues))

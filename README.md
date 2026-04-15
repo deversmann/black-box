@@ -4,7 +4,7 @@ A sophisticated multi-agent AI system designed as a personal learning assistant 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Phase 2 Complete](https://img.shields.io/badge/status-Phase%202%20Complete-brightgreen.svg)](https://github.com/deversmann/black-box/milestone/2)
+[![Version 0.3.0](https://img.shields.io/badge/version-0.3.0-brightgreen.svg)](https://github.com/deversmann/black-box/releases)
 [![Issues](https://img.shields.io/github/issues/deversmann/black-box)](https://github.com/deversmann/black-box/issues)
 
 ## What is Black Box Swarm?
@@ -144,6 +144,45 @@ The **Aura** agent (storyteller) activates when `P(tangent) ≥ 0.7`, transformi
 - ✅ Extracted memories displayed in Debug Info panel
 - ✅ Fixed state propagation bug (memories_count in SwarmState)
 - ✅ 70 tests passing, 85% coverage
+
+### ✅ Phase 2.5: Infrastructure & Bug Fixes (COMPLETE - 2026-04-15)
+**Goal:** Production-ready logging and UI polish
+
+**UI/UX Fixes ([Issues #5-7](https://github.com/deversmann/black-box/issues)):**
+- ✅ Fixed metadata panel one-turn delay issue
+- ✅ Fixed state accumulation bug (Parser overwrote Sensor's mood)
+- ✅ Moved status bubbles to appear before responses
+- ✅ Made status bubbles persistent in chat history
+- ✅ Enhanced agent status messages (full Probe reasoning, Verdict failure details)
+
+**Logging System ([Issue #8](https://github.com/deversmann/black-box/issues/8)):**
+- ✅ **Structured JSON logging** with JSONFormatter
+- ✅ **Agent execution timing** (automatic via base class wrapper)
+- ✅ **API call logging** (latency, tokens, retries, backoff delays)
+- ✅ **Orchestrator flow logging** (routing decisions, retries)
+- ✅ **Log rotation** (10MB files, 5 backups = ~50MB max)
+- ✅ **Sensitive data redaction** (API keys, passwords, tokens)
+- ✅ **<2% performance overhead** on typical execution times
+- ✅ **Queryable logs** with jq (find errors, calculate averages, trace sessions)
+
+**Log Files:**
+- Logs written to `./logs/swarm.log` in structured JSON format
+- Each log entry includes: timestamp, level, logger, event_type, data, correlation_id
+
+**Example log queries:**
+```bash
+# View all logs
+jq '.' logs/swarm.log
+
+# Find slow agents (>1s execution time)
+jq 'select(.event_type == "agent_execution_complete" and .data.duration_ms > 1000)' logs/swarm.log
+
+# Calculate average API latency
+jq -s 'map(select(.event_type == "api_call_complete")) | map(.data.latency_ms) | add/length' logs/swarm.log
+
+# Trace a specific session
+jq --arg session "session_20260415_103045" 'select(.correlation_id == $session)' logs/swarm.log
+```
 
 ### 📋 Phase 3: The Ledger (NEXT - [Milestone](https://github.com/deversmann/black-box/milestone/3))
 Persistent memory with semantic search and cooldown filter

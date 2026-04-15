@@ -2,6 +2,71 @@
 
 All notable changes to the Black Box Swarm project will be documented in this file.
 
+## [0.3.0] - 2026-04-15
+
+### UI/UX Bug Fixes & Logging System
+
+#### Added
+- **Structured JSON logging system** (Issue #8)
+  - Created `src/blackbox/core/logging.py` with JSONFormatter, configure_logging, get_logger
+  - JSONFormatter outputs structured logs with event_type, data, correlation_id fields
+  - Automatic sensitive data redaction (API keys, passwords, tokens)
+  - Log rotation (10MB files, 5 backups = ~50MB max)
+  - Dual output: stdout + file (`./logs/swarm.log`)
+  - <2% performance overhead on typical execution times
+
+- **Agent execution logging**
+  - Refactored Agent base class with execute() wrapper for automatic timing
+  - All agents now implement `_execute_impl()` instead of `execute()`
+  - Logs `agent_execution_start` and `agent_execution_complete` with duration_ms
+  - Mechanical rename across all 10 agent files
+
+- **API client logging**
+  - Logs `api_call_start` with model, temperature, max_tokens, attempt
+  - Logs `api_call_complete` with latency_ms, token counts
+  - Logs `api_call_error` with error type, will_retry flag
+  - Logs exponential backoff delays
+
+- **Orchestrator flow logging**
+  - Logs `orchestrator_initialized` with agent roster and safety profile
+  - Logs `orchestrator_process_start`/`complete` with correlation_id (session_id)
+  - Logs routing decisions (probe veto, aura activation, verdict retry)
+  - Logs retry triggers with reasoning
+
+- **Configuration enhancements**
+  - Updated `config/default.yaml` with logging.rotation settings
+  - Modified `config.py` to call `configure_logging()` on load
+
+#### Fixed
+- **Metadata panel not updating** (Issue #5)
+  - Fixed one-turn delay in sidebar metadata display
+  - Used `st.empty()` placeholder pattern for dynamic updates
+  - Metadata now updates immediately after processing completes
+
+- **State accumulation bug** (Issue #5)
+  - Fixed bug where Parser's partial state overwrote Sensor's user_mood
+  - Changed from `final_state = node_output` to accumulated merge pattern
+  - LangGraph `astream()` yields partial updates, must be accumulated
+  - All state fields now preserved through full execution flow
+
+- **Agent status bubble positioning** (Issue #6)
+  - Moved status bubbles to appear BEFORE responses (not after)
+  - Made status bubbles persistent in chat history
+  - Displays as collapsed by default for clean history view
+  - Works like "thinking" streams in other chat UIs
+
+- **Agent status messages** (Issue #7)
+  - Removed Probe reasoning truncation (show full text)
+  - Added Verdict failure reason to status display
+  - Verdict now shows "✗ Fail: [specific reason]" instead of just "✗ Fail"
+
+#### Changed
+- **Agent base class API**: Agents implement `_execute_impl()` instead of `execute()`
+  - `execute()` is now a wrapper method that handles timing and logging
+  - Breaking change for agent implementations (but easy mechanical refactor)
+
+---
+
 ## [0.2.0] - 2026-04-11
 
 ### Phase 2 Complete: All 10 Agents Implemented

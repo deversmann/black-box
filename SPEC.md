@@ -430,7 +430,7 @@ agents_involved   JSON                    -- List of agents that ran
 
 **Deployment:**
 - **Containerization:** Docker + Docker Compose
-- **Monitoring:** Prometheus metrics, structured logging (structlog)
+- **Monitoring:** Prometheus metrics, structured JSON logging (Python logging module)
 
 ### Project Structure
 
@@ -709,7 +709,7 @@ class SwarmState(TypedDict):
 
 **Components:**
 - Comprehensive test suite (unit, integration, E2E)
-- Structured logging (JSON, structlog)
+- Structured JSON logging (Python logging module with JSONFormatter)
 - Prometheus metrics
 - Docker deployment
 - Environment-specific configs
@@ -891,10 +891,13 @@ associative:
 
 # Logging configuration
 logging:
-  level: "INFO"
-  format: "json"
-  output: "stdout"
+  level: "INFO"           # DEBUG, INFO, WARNING, ERROR
+  format: "json"          # Structured JSON logs
+  output: "both"          # stdout, file, both
   file: "./logs/swarm.log"
+  rotation:
+    max_bytes: 10485760   # 10MB per file
+    backup_count: 5       # Keep 5 backup files (~50MB total)
 
 # Metrics configuration
 metrics:
