@@ -191,9 +191,12 @@ async def process_message_stream(
         "Flash": lambda state: f"Memories: {len(state.get('memory_hits', []))}",
         "Vault": lambda state: f"Facts: {len(state.get('facts', []))}",
         "Command": "Synthesizing response",
-        "Probe": lambda state: f"{state.get('probe_decision', 'APPROVE')}: {state.get('probe_reasoning', '')[:30]}...",
+        "Probe": lambda state: f"{state.get('probe_decision', 'APPROVE')}: {state.get('probe_reasoning', '')}",
         "Aura": lambda state: f"Enhanced (P={state.get('p_tangent', 0.5):.2f})",
-        "Verdict": lambda state: f"{'✓ Pass' if state.get('validation_passed') else '✗ Fail'}",
+        "Verdict": lambda state: (
+            f"✓ Pass" if state.get('validation_passed')
+            else f"✗ Fail: {state.get('verdict_feedback', '').replace('FAIL:', '').strip()}"
+        ),
         "Parser": lambda state: f"Extracted {state.get('memories_count', 0)} memories",
     }
 
