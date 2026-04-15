@@ -364,11 +364,9 @@ def main() -> None:
 
         st.divider()
 
-        # Metadata Panel (Wave 1)
+        # Metadata Panel (Wave 1) - use empty() for dynamic updates
         st.header("Current State")
-
-        # Render current state directly (no placeholder)
-        render_metadata_panel(st.session_state.get("last_state"))
+        metadata_container = st.empty()
 
         st.divider()
 
@@ -419,6 +417,10 @@ def main() -> None:
     # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
+
+    # Render initial metadata state (will be updated after processing if new message)
+    with metadata_container.container():
+        render_metadata_panel(st.session_state.get("last_state"))
 
     # Display chat history
     for message in st.session_state.messages:
@@ -486,6 +488,10 @@ def main() -> None:
                 # Update debug info and state FIRST (before any widget updates)
                 st.session_state.last_agents = result.get("agents_involved", [])
                 st.session_state.last_state = result
+
+                # Update metadata panel with new state (fixes one-turn delay issue)
+                with metadata_container.container():
+                    render_metadata_panel(result)
 
                 # Display response in placeholder (prevents ghost duplication)
                 response_placeholder.markdown(response)

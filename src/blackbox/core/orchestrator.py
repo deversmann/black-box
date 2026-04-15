@@ -800,13 +800,16 @@ class SwarmOrchestrator:
 
         # Track previous agents_involved list length to detect new completions
         previous_agent_count = 0
-        # Track the final state from streaming
-        final_state = None
+        # Accumulate the full state from streaming (nodes return partial updates)
+        accumulated_state = dict(initial_state)
 
         # Stream events from the graph
         async for event in self.graph.astream(initial_state):
             # event is a dict with node name as key
             for node_name, node_output in event.items():
+                # Merge this node's output into accumulated state
+                accumulated_state.update(node_output)
+
                 # Get current agents list (cumulative)
                 current_agents_list = node_output.get("agents_involved", [])
                 current_agent_count = len(current_agents_list)
@@ -821,16 +824,12 @@ class SwarmOrchestrator:
                         yield {
                             "type": "agent_complete",
                             "agent": agent,
-                            "state": node_output,
+                            "state": accumulated_state,  # Send full accumulated state
                         }
 
                     # Update count
                     previous_agent_count = current_agent_count
 
-                # Keep track of the most recent state
-                final_state = node_output
-
-        # Yield final event with the last state from streaming
+        # Yield final event with the accumulated state
         # DO NOT call ainvoke() again - that would re-run the entire graph!
-        if final_state:
-            yield {"type": "final", "state": final_state}
+        yield {"type": "final", "state": accumulated_state}
