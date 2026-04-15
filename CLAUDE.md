@@ -1,431 +1,147 @@
-# Claude Code Context
+# Claude Code Context - Black Box Swarm
 
-This file helps Claude Code understand the project context when you return.
+Multi-agent AI learning assistant | Phase 2.5 Complete | 10 agents + logging | 70 tests, 85% coverage
 
-## Project: Black Box Swarm
-**Status:** Phase 2 Complete - All 10 Agents + Logging System  
-**Date:** 2026-04-15
-
-## What This Is
-Multi-agent AI system for a personal learning assistant that learns, remembers, and develops personality through specialized agents coordinated via LangGraph.
+**Repo:** https://github.com/deversmann/black-box  
+**Docs:** docs/STATUS.md (roadmap), docs/architecture/ (design), docs/guides/ (development)
 
 ## Current State
 
-### Phase 1: COMPLETE ✅
-- ✅ 4 core agents fully implemented and tested
-- ✅ LangGraph orchestration with conditional retry
-- ✅ OpenRouter integration (gpt-5.4 / gpt-5.4-nano)
-- ✅ Streamlit chat UI with session tracking
-- ✅ **Sliding window context** - Last 10 turns for conversational flow
-- ✅ **Detail level detection** - BRIEF/DETAILED/COMPREHENSIVE modes
-- ✅ **Truncation handling** - Auto-detects cutoffs, retries with feedback
-- ✅ **Conversational tuning** - Brief by default, detailed on request
-- ✅ 23 tests passing, 87% coverage
-- ✅ Complete documentation (SPEC.md, README.md, CHANGELOG.md, QUICKSTART.md)
+**Phase 2.5 Complete** (2026-04-15) - All 10 agents operational, logging system implemented, UI/UX polished
+- Recent: Structured JSON logging (issue #8), UI bug fixes (issues #5-7)
+- Next: Phase 3 - The Ledger (persistent memory with SQLite + ChromaDB)
 
-### Phase 1.5: COMPLETE ✅
-- ✅ **Real-time agent visualization** - Live progress display using st.status
-- ✅ Event streaming from LangGraph via astream()
-- ✅ Agent icons and descriptions in UI
-- ✅ Foundation for Phase 2 parallel agent visualization
-
-### Phase 2 Wave 1: COMPLETE ✅
-- ✅ **Shield agent** - Two-pass safety validation (input + output)
-  - Three safety profiles: STRICT, BALANCED, EXPERIMENTAL
-  - Integrated at graph ingress (Pass 1) and egress (Pass 2)
-- ✅ **Sensor agent** - Mood detection and P(tangent) calculation
-  - 6 mood states: JOVIAL, CURIOUS, NEUTRAL, FOCUSED, FRUSTRATED, HURRIED
-  - Calculates P(tangent) = slider + mood_modifier, clamped [0.0, 1.0]
-- ✅ **Parallel execution** - Sieve + Sensor run concurrently via asyncio.gather()
-- ✅ **Sequential validation** - Verdict → (retry OR Shield Pass 2)
-- ✅ **UI enhancements**
-  - Metadata sidebar panel (mood, P(tangent), detail level, Aura status, safety profile)
-  - Real-time sidebar updates (current turn, not delayed)
-  - P(tangent) slider properly connected to swarm
-  - Compact emoji flow in Debug Info panel (🛡️₁ → 🔍 → 🎭 → ...)
-  - Enhanced agent status messages with dynamic state display
-  - Retry indicators (🔁) for Command/Verdict retries
-  - Safety profile selector in settings
-  - Status bubble expanded by default for visibility
-  - Fixed ghost message duplication during processing
-- ✅ **Sieve expansion detection**
-  - Detects continuation patterns (assistant offers → user affirms)
-  - Prevents Command/Verdict conflicts on expansion requests
-- ✅ **COMPREHENSIVE mode improvements**
-  - Increased token budget (500→2200) with prompt guardrails
-  - Prevents truncation while encouraging concise responses
-- ✅ 43 tests passing, 87% coverage
-
-### Phase 2 Wave 2: COMPLETE ✅
-- ✅ **Vault agent** - Relational database queries (mock)
-  - Returns 5 hardcoded facts for Phase 2 testing
-  - Phase 3 will query real SQLite database
-  - Provides factual knowledge context to Command
-- ✅ **Probe agent** - Logic validation with veto power
-  - Three validation criteria: logical coherence, relevance to intent, tangent appropriateness
-  - Can APPROVE, VETO, or SUGGEST improvements
-  - Mood-aware: strict with HURRIED/FRUSTRATED users, lenient with JOVIAL
-  - Triggers Command retry on VETO (up to 2 retries)
-- ✅ **Conditional routing** - Probe → (retry OR Aura OR Verdict)
-- ✅ 62 tests passing, 85% coverage
-
-### Phase 2 Wave 3: COMPLETE ✅
-- ✅ **Aura agent** - Narrative enhancement (P(tangent) ≥ 0.7)
-  - Temperature 0.9 for creative flair
-  - Adds metaphors, sensory details, emotional language
-  - Maintains factual accuracy (decorates, doesn't distort)
-  - Only activates when P(tangent) crosses threshold
-- ✅ **Parser agent** - Memory extraction with atomic rewriting
-  - Extracts 6 memory types: user_fact, user_story, task_goal, preference, relationship, ai_logic
-  - Resolves pronouns using conversation context for self-contained memories
-  - Tags and importance scoring (0.0-1.0)
-  - Phase 2: extraction to JSON only (no storage)
-  - Phase 3: will write to The Ledger (SQLite + ChromaDB)
-- ✅ **UI enhancements**
-  - Extracted memories displayed in Debug Info panel
-  - Parser shows "Extracted N memories" in status bubble
-  - Agent flow includes all 10 agents: 🛡️₁ → 🔍 → 🎭 → 💾 → 📚 → 🧠 → 🔬 → (✨) → ✅ → 🛡️₂ → 🗂️
-- ✅ **Fixed state propagation** - memories_count and extracted_memories added to SwarmState
-- ✅ 70 tests passing, 85% coverage
-
-### Infrastructure: Logging System COMPLETE ✅
-- ✅ **Structured JSON logging** - Application-wide observability
-  - JSONFormatter with event_type, data, correlation_id fields
-  - Automatic sensitive data redaction (API keys, passwords, tokens)
-  - Log rotation (10MB files, 5 backups = ~50MB max)
-  - Dual output: stdout + file (./logs/swarm.log)
-- ✅ **Agent execution logging** - Automatic timing for all agents
-  - Refactored Agent base class with execute() wrapper
-  - All agents log agent_execution_start and agent_execution_complete
-  - Captures duration_ms, confidence, metadata keys
-- ✅ **API client logging** - Request/response observability
-  - Logs api_call_start, api_call_complete with latency_ms and token counts
-  - Logs api_call_error with retry behavior
-  - Logs exponential backoff delays
-- ✅ **Orchestrator logging** - Flow and routing decisions
-  - Logs orchestrator_process_start/complete with correlation_id
-  - Logs routing decisions (probe veto, aura activation, verdict retry)
-  - Logs retry triggers with reasoning
-- ✅ **Performance** - <2% overhead on typical execution times
-- ✅ **Privacy** - Automatic redaction, no PII in logs
-
-### Next Steps
-**Phase 3: The Ledger - Memory System**
-Persistent long-term memory with semantic search:
-1. SQLite database schema implementation
-2. ChromaDB vector store integration
-3. Flash agent real memory retrieval (replace mock)
-4. Parser agent write to database
-5. Cooldown filter (24hr default)
-6. Memory consolidation and importance decay
-
-## GitHub Project Management
-
-**Repository:** https://github.com/deversmann/black-box
-
-**Milestones:**
-- [Phase 2: Complete Agent Suite](https://github.com/deversmann/black-box/milestone/2) (In Progress)
-- [Phase 3: The Ledger - Memory System](https://github.com/deversmann/black-box/milestone/3)
-- [Phase 4: Production Readiness](https://github.com/deversmann/black-box/milestone/4)
-- [Phase 5: Advanced Features](https://github.com/deversmann/black-box/milestone/5)
-
-**Wave Labels:**
-- `phase-2-wave-1` - Shield & Sensor (COMPLETE ✅)
-- `phase-2-wave-2` - Vault & Probe (COMPLETE ✅)
-- `phase-2-wave-3` - Aura & Parser (COMPLETE ✅)
-
-**Closed Issues (Phase 2):**
-- [#1 Add Vault agent](https://github.com/deversmann/black-box/issues/1) - Wave 2 ✅
-- [#2 Add Probe agent](https://github.com/deversmann/black-box/issues/2) - Wave 2 ✅
-- [#3 Add Aura agent](https://github.com/deversmann/black-box/issues/3) - Wave 3 ✅
-- [#4 Add Parser agent](https://github.com/deversmann/black-box/issues/4) - Wave 3 ✅
-
-**Open Bug Issues:**
-- [#5 Associative Slider: Investigate behavior](https://github.com/deversmann/black-box/issues/5)
-- [#6 Double counting in retry scenarios](https://github.com/deversmann/black-box/issues/6)
-- [#7 Extract "Running..." logic](https://github.com/deversmann/black-box/issues/7)
-- [#8 Implement application-wide logging system](https://github.com/deversmann/black-box/issues/8)
-
-**Access via gh CLI:**
-- List issues: `gh issue list --milestone "Phase 2: Complete Agent Suite"`
-- View issue: `gh issue view 1`
-- Create issue: `gh issue create --milestone 2 --label "phase-2-wave-2,agent"`
-
-## Technology Stack (Final Decisions)
-- **Language:** Python 3.11+
-- **Orchestration:** LangGraph (type-safe state, DAG viz, conditional branching)
-- **AI Provider:** OpenRouter.ai (OpenAI API compatible)
-- **Models:** gpt-4o (Command, Aura, Probe), gpt-4o-mini (others)
-- **Database:** SQLite + SQLAlchemy
-- **Vector Store:** ChromaDB (embedded)
-- **API:** FastAPI
-- **Frontend:** Streamlit (MVP), React (future)
-- **Deployment:** Docker + Docker Compose
-
-## Key Architecture Concepts
-
-### Phase 1 Agents (Implemented)
-
-1. **Sieve** - Intent distillation + detail level detection
-   - Parses user intent into bullet points
-   - Detects BRIEF/DETAILED/COMPREHENSIVE request
-   - Resolves pronouns using last 3 turns of context
-   - Output: `DETAIL_LEVEL: X\nINTENT: bullets`
-
-2. **Flash** - Memory retrieval (mock)
-   - Returns 3 hardcoded memories for testing
-   - Phase 3 will use real ChromaDB vector search
-
-3. **Command** - Master synthesizer with context sandwich
-   - Receives 5-layer context: Intent → Memories → History → Current
-   - 3 modes: BRIEF (500 tokens), DETAILED (800), COMPREHENSIVE (2200)
-   - Conversational by default, detailed on request
-   - Receives Verdict feedback on retry
-
-4. **Verdict** - Response validation with truncation detection
-   - Priority checks: Truncation → Length → Tone → Completeness
-   - Passes specific feedback to Command on failure
-   - Validates against expected detail_level
-
-### Phase 2 Agents
-
-5. **Shield** - Safety validation (2-pass: input + output) ✅
-   - Pass 1: User input safety check (blocks unsafe input)
-   - Pass 2: Response output safety check (blocks unsafe output)
-   - Three profiles: STRICT (strict filtering), BALANCED (default), EXPERIMENTAL (minimal)
-   - Returns SAFE/UNSAFE with reasoning
-
-6. **Sensor** - Mood detection and P(tangent) calculation ✅
-   - Detects 6 mood states: JOVIAL (+0.2), CURIOUS (+0.1), NEUTRAL (0.0), FOCUSED (-0.1), FRUSTRATED (-0.2), HURRIED (-0.2)
-   - Calculates P(tangent) = base_slider + mood_modifier (clamped [0.0, 1.0])
-   - Runs in parallel with Sieve for efficiency
-
-7. **Vault** - Relational DB queries ✅
-   - Returns 5 mock facts for Phase 2
-   - Phase 3 will query real SQLite database
-   - Provides factual context to Command
-
-8. **Probe** - Logic validation with veto power ✅
-   - Validates logical coherence, relevance, tangent appropriateness
-   - Can APPROVE, VETO, or SUGGEST
-   - Triggers Command retry on VETO
-
-9. **Aura** - Narrative enhancement (P(tangent) ≥ 0.7) ✅
-   - Adds creative flair, metaphors, sensory details
-   - Only activates when P(tangent) crosses 0.7 threshold
-   - Maintains factual accuracy
-
-10. **Parser** - Memory extraction with atomic rewriting ✅
-    - Extracts 6 memory types with tags and importance
-    - Resolves pronouns for self-contained memories
-    - Phase 2: JSON extraction only (no storage)
-    - Phase 3: will write to The Ledger
-
-### The Ledger (Memory System)
-Hybrid database:
-- SQLite for structure (memories, tags, sessions, interactions)
-- ChromaDB for semantic vector search
-- 6 memory types: USER_FACT, USER_STORY, AI_LOGIC, TASK/GOAL, PREFERENCE, RELATIONSHIP
-- Cooldown filter (24hr default) prevents repetition
-- Atomic memories (self-contained, no unresolved pronouns)
-
-### Associative Personality
-```
-P(tangent) = Slider (0.0-1.0) + MoodModifier (±0.2)
-```
-- At P(tangent) ≥ 0.7, Aura activates for narrative flair
-- Sensor detects mood: JOVIAL (+0.2), FRUSTRATED (-0.2), etc.
-- Thresholds adjust based on tangent probability
-
-## Critical Implementation Details
-
-### Context Sandwich Structure (Implemented)
-Command receives context in priority order:
-1. **System Prompt** - Adapted to detail_level (BRIEF/DETAILED/COMPREHENSIVE)
-2. **Core Intent** (pinned) - From Sieve, prevents conversational drift
-3. **Flash Memories** - Long-term semantic context (mock in Phase 1)
-4. **Sliding Window** - Last 10 turns (20 messages) for conversational flow
-5. **Active Workspace** - Current user message + state
-
-This structure ensures agents have the right context at the right priority.
-
-### Detail Level Detection (Implemented)
-Sieve detects user's desired response length:
-- **BRIEF** (default): "What are decorators?" → 500 tokens (~300 words)
-- **DETAILED**: "Explain decorators in detail with examples" → 800 tokens
-- **COMPREHENSIVE**: "Give me everything about decorators" → 1200 tokens
-
-Triggers passed through state, Command adjusts prompt + token budget.
-
-### Truncation Handling (Implemented)
-Verdict detects mid-sentence cutoffs:
-1. Check if response ends with punctuation (. ? ! " etc.)
-2. If not → FAIL with specific feedback
-3. Command receives feedback on retry
-4. Max 2 retries before giving up
-
-Prevents user from seeing incomplete responses.
-
-### Model Tiering (Phase 1)
-- **Fast** (gpt-5.4-nano): Sieve, Flash, Verdict
-- **High-reasoning** (gpt-5.4): Command
-Target: < 2s for simple queries (achieved with mocks)
-
-### Conversational Tone (Implemented)
-All prompts emphasize:
-- "You're chatting, not teaching a class"
-- Brief by default, detailed on request
-- Everyday language, not textbook language
-- Offer to expand rather than dumping everything
-
-### Implemented Features (Phase 2)
-
-**Atomic Memory Rewriting:** ✅
-Parser makes memories self-contained:
-```
-Input: "It broke yesterday"
-Context: Previous mention of "Honda Shadow"
-Output: "The user's Honda Shadow motorcycle broke yesterday"
-```
-Implementation: Conversation context injection + pronoun resolution prompting
-
-**Parallelization via LangGraph:** ✅
-- Sieve + Sensor run in parallel (asyncio.gather)
-- Conditional: Aura only if P(tangent) ≥ 0.7
-- Verdict → Shield Pass 2 (sequential for semantics)
-
-### Future Implementation (Phase 3+)
-
-**Cooldown Filter:**
-In-memory cache → DB check → background cleanup
-Prevents mentioning same memory twice in 24 hours (configurable)
-
-**The Ledger Storage:**
-- Parser writes extracted memories to SQLite + ChromaDB
-- Flash retrieves real memories via semantic search
-- Memory importance decay over time
-- Memory consolidation (merge similar memories)
-
-## User Preferences
-
-The user (project creator):
-- Values **detailed planning** and documentation before coding
-- Wants **phased approach** with MVP first
-- Chose **full 11-agent system** (not simplified)
-- Emphasizes **maintainability and extensibility**
-- Plans to **open source** (MIT license)
-- Building **personal assistant** for general use across domains
-- Wants assistant to **get to know them** like a friend would
-- **UI preferences:**
-  - Likes real-time agent visualization during execution
-  - Wants both in-chat status updates AND sidebar metadata panel
-  - Interested in graphical DAG visualization (start with LangGraph built-in)
-
-## Files to Reference
-
-- **SPEC.md** - Comprehensive technical specification (500+ lines)
-- **README.md** - Public-facing documentation
-- **LICENSE** - MIT open source license
-- **config/default.yaml** - Configuration reference (in SPEC.md)
-
-## Phase 1 Session Summary (2026-04-09)
-
-**What We Built:**
-- Complete 4-agent MVP with conversational intelligence
-- Sliding window context (10 turns) for natural conversation flow
-- Detail level detection (BRIEF/DETAILED/COMPREHENSIVE)
-- Truncation detection and automatic retry with feedback
-- Conversational tone tuning - brief by default, detailed on request
-- 23 tests passing, 87% coverage
-
-**Key Decisions Made:**
-- **Context sandwich** structure for agent prompts (user's idea ✨)
-- Brief responses by default (~300 words) with auto-expansion on request
-- Truncation detection as #1 priority in Verdict
-- Feedback loop between Verdict and Command
-- Two types of tangents identified: USER_TANGENT vs AI_TANGENT (for Phase 2)
-
-**Ready for Phase 2:**
-- Intent lifecycle tracking (CONTINUATION, USER_TANGENT, AI_TANGENT, SATISFIED_NEW, NEW)
-- 7 additional agents (Shield, Sensor, Vault, Probe, Aura, Parser)
-- P(tangent) calculation with mood modifiers
-- Safety profile enforcement
-- **UI enhancements:**
-  - Metadata sidebar panel (mood, P(tangent), detail level, Aura status, safety profile)
-  - Enhanced agent status messages showing metadata details
-
-## When User Returns
-
-**Phase 2 is COMPLETE! 🎉** Recent sessions (2026-04-10 to 2026-04-15):
-- ✅ All 10 agents implemented and tested (70 tests passing)
-- ✅ Wave 1: Shield + Sensor (safety + mood detection)
-- ✅ Wave 2: Vault + Probe (facts + logic validation)
-- ✅ Wave 3: Aura + Parser (narrative enhancement + memory extraction)
-- ✅ **UI/UX bug fixes** (issues #5, #6, #7 - all closed):
-  - Fixed metadata panel updates (one-turn delay issue)
-  - Fixed state accumulation bug (Parser overwrote Sensor's mood)
-  - Moved status bubbles to appear before responses
-  - Made status bubbles persistent in chat history
-  - Enhanced agent status messages (full Probe reasoning, Verdict failure details)
-- ✅ **Logging system implemented** (issue #8 - closed):
-  - Structured JSON logging with JSONFormatter
-  - Agent execution timing (automatic via base class wrapper)
-  - API call logging (latency, tokens, retries)
-  - Orchestrator flow logging (routing decisions, retries)
-  - Log rotation (10MB files, 5 backups)
-  - Sensitive data redaction
-  - <2% performance overhead
+**Phases:**
+- ✅ 0: Design complete
+- ✅ 1: Core 4-agent MVP (Sieve, Flash-mock, Command, Verdict) - conversational intelligence, truncation detection
+- ✅ 1.5: Real-time agent visualization (st.status, astream)
+- ✅ 2.1: Shield (2-pass safety) + Sensor (mood → P(tangent))
+- ✅ 2.2: Vault (mock DB) + Probe (logic veto)
+- ✅ 2.3: Aura (narrative @P≥0.7) + Parser (memory extraction)
+- ✅ 2.5: JSON logging system + UI fixes
+- 📋 3: The Ledger (persistent memory)
 
 **Recent Commits:**
-- a9182b0: Fix agent status messages (Probe, Verdict)
-- 0c51af4: Move status bubbles before responses, persist in history
-- a9b06d9: Fix metadata panel updates and state accumulation bug
-- 79ad072: Implement application-wide structured JSON logging
+- e384e2b: Update documentation: Phase 2.5 complete
+- 79ad072: Implement JSON logging system
+- a9b06d9: Fix metadata panel + state accumulation bug
+- 0c51af4: Move status bubbles before responses
 
-**They'll likely want to:**
-1. **Test the logging system** - Verify logs are being written correctly
-2. **Begin Phase 3: The Ledger** - Persistent memory with SQLite + ChromaDB
-   - Database schema implementation
-   - Flash agent real memory retrieval
-   - Parser agent write to database
-   - Cooldown filter
+## Stack
 
-**Remember:** 
-- User values detailed planning before coding
-- Chose full 11-agent system (not simplified)
-- Emphasizes maintainability and extensibility
-- Building for personal use but plans to open source
-- Wants assistant to "get to know them" like a friend would
-- **Uses GitHub issues** for task tracking - check open issues before planning work
+Python 3.11+ | LangGraph | OpenRouter (gpt-4o / gpt-4o-mini) | SQLite + ChromaDB | Streamlit | FastAPI
 
-## Quick Reference: Critical Files
+**Model Tier:**
+- High-reasoning (gpt-4o): Command, Aura, Probe
+- Fast (gpt-4o-mini): Shield, Sieve, Sensor, Flash, Vault, Verdict, Parser
+
+## Agent Roster
+
+**Ingress (Input):**
+- 🛡️ Shield: 2-pass safety (Pass 1 input, Pass 2 output) | 3 profiles: STRICT/BALANCED/EXPERIMENTAL
+- 🔍 Sieve: Intent distillation + detail level (BRIEF/DETAILED/COMPREHENSIVE) + pronoun resolution
+- 🎭 Sensor: Mood detection (JOVIAL/CURIOUS/NEUTRAL/FOCUSED/FRUSTRATED/HURRIED) | calculates P(tangent) = slider + mood_modifier
+
+**Context (Memory):**
+- 💾 Flash: Vector search in The Ledger (Phase 2: mock, Phase 3: real ChromaDB)
+- 📚 Vault: Relational DB queries (Phase 2: mock, Phase 3: real SQLite)
+
+**Synthesis (Creation):**
+- 🧠 Command: Master synthesizer | receives 5-layer context sandwich (Intent → Memories → History → Current)
+- 🔬 Probe: Logic validator | can APPROVE/VETO/SUGGEST | triggers Command retry on VETO
+- ✨ Aura: Narrative enhancer | activates when P(tangent) ≥ 0.7 | temp 0.9 for creative flair
+
+**Egress (Validation):**
+- ✅ Verdict: Response validator | checks intent satisfaction + truncation + completeness | passes feedback to Command on fail
+- 🛡️ Shield Pass 2: Output safety check
+- 🗂️ Parser: Memory extractor | 6 types (user_fact, user_story, task_goal, preference, relationship, ai_logic) | Phase 2: JSON only, Phase 3: write to DB
+
+**Flow:** Shield₁ → (Sieve ∥ Sensor) → Flash → Vault → Command → Probe → (Aura if P≥0.7) → Verdict → Shield₂ → Parser
+
+## Critical Patterns
+
+**Context Sandwich** (Command receives in priority order):
+1. System prompt (adapted to detail_level)
+2. Core intent (from Sieve, pinned)
+3. Flash memories (long-term semantic)
+4. Sliding window (last 10 turns)
+5. Active workspace (current message + state)
+
+**Atomic Rewriting** (Parser):
+```python
+# Input: "It broke yesterday"
+# Context: Previous mention "Honda Shadow motorcycle"
+# Output: "The user's Honda Shadow motorcycle broke yesterday"
+# Implementation: Conversation context injection + pronoun resolution prompting
+```
+
+**Parallelization:**
+```python
+# Sieve + Sensor run concurrently
+sieve_result, sensor_result = await asyncio.gather(
+    self._run_sieve(state),
+    self._run_sensor(state)
+)
+# Verdict + Shield Pass 2 run sequentially (semantics matter)
+```
+
+**State Management:**
+- SwarmState is TypedDict (immutable by convention)
+- Create new objects, don't mutate
+- All agents receive + return state
+
+## File Reference
 
 ```
-/black-box/
-├── pyproject.toml              # Dependencies: langgraph, chromadb, fastapi, streamlit, sqlalchemy
-├── .env.example                # OPENROUTER_API_KEY
-├── config/default.yaml         # Agent configs, models, thresholds, logging settings
-├── logs/swarm.log              # Structured JSON logs (rotated)
-├── src/blackbox/
-│   ├── core/
-│   │   ├── agent.py           # Base Agent ABC with execute() wrapper for logging
-│   │   ├── state.py           # SwarmState TypedDict
-│   │   ├── orchestrator.py    # LangGraph graph with flow logging
-│   │   ├── logging.py         # JSONFormatter, configure_logging, get_logger
-│   │   └── config.py          # Config loader (initializes logging)
-│   ├── agents/
-│   │   ├── sieve.py           # All agents implement _execute_impl()
-│   │   ├── flash.py           # Mock version for Phase 2
-│   │   ├── command.py
-│   │   ├── verdict.py
-│   │   ├── shield.py, sensor.py, vault.py, probe.py, aura.py, parser.py
-│   └── models/
-│       └── client.py          # OpenRouter client with API logging
-└── frontend/
-    └── app.py                 # Streamlit UI with status bubbles
+src/blackbox/
+├── core/
+│   ├── agent.py          # Base Agent ABC with execute() wrapper (logging)
+│   ├── state.py          # SwarmState TypedDict
+│   ├── orchestrator.py   # LangGraph graph + flow logging
+│   ├── logging.py        # JSONFormatter, configure_logging, get_logger
+│   └── config.py         # Config loader (initializes logging)
+├── agents/               # All agents implement _execute_impl()
+│   ├── {sieve,flash,command,verdict,shield,sensor,vault,probe,aura,parser}.py
+└── models/
+    └── client.py         # OpenRouter client + API logging
+
+frontend/app.py           # Streamlit UI with status bubbles
+config/default.yaml       # All configs (agents, memory, safety, logging)
+logs/swarm.log            # JSON logs (rotated, 10MB × 5 backups)
 ```
 
----
+## Commands
 
-**Last Session:** UI/UX bug fixes + Logging system implementation (issues #5-8 closed) (2026-04-15)
-**Next Session:** Test logging system or begin Phase 3 - The Ledger ([view issues](https://github.com/deversmann/black-box/issues))
+```bash
+# Run
+streamlit run frontend/app.py
+
+# Test
+pytest                                    # All
+pytest tests/unit/test_agents/           # Agents only
+pytest --cov=blackbox --cov-report=html  # With coverage
+
+# Logs
+tail -f logs/swarm.log | jq              # Pretty JSON
+jq 'select(.event_type == "agent_execution_complete" and .data.duration_ms > 1000)' logs/swarm.log  # Slow agents
+
+# Issues
+gh issue list
+gh issue view 9
+gh issue create --milestone 3 --label "phase-3"
+```
+
+## Documentation Rules
+
+**Root:** README.md (concise + QuickStart), CLAUDE.md (this file, minimal), LICENSE  
+**docs/:** All detail organized max 1-level deep  
+- STATUS.md: Roadmap + completion (update after sessions)
+- architecture/: OVERVIEW.md, AGENTS.md, MEMORY.md
+- guides/: CONFIGURATION.md, DEVELOPMENT.md, CHALLENGES.md
+
+**Rules:**
+- 250-line limit per file (split if needed)
+- All docs reachable via link chain from README
+- Markdown only
+- Update STATUS.md after phase changes/feature completions
+- Keep CLAUDE.md compressed (this file: AI context only, no human prose)

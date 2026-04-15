@@ -89,140 +89,32 @@ The **Aura** agent (storyteller) activates when `P(tangent) ≥ 0.7`, transformi
 - **High-reasoning agents** (Command, Aura, Probe): GPT-4o
 - **Fast agents** (Shield, Sieve, Sensor, Vault, Parser): GPT-4o-mini
 
-## Implementation Roadmap
+## Project Status & Roadmap
 
-### ✅ Phase 0: Design (Complete)
-- [x] Conceptual architecture
-- [x] Technical specification (SPEC.md)
-- [x] Database schemas
-- [x] Configuration design
+**Current Phase:** 2.5 Complete ✅ (2026-04-15)
 
-### ✅ Phase 1: Core Swarm MVP (COMPLETE - 2026-04-09)
-**Goal:** Prove the swarm pattern works end-to-end with conversational intelligence
+All 10 agents implemented and operational with structured JSON logging system. 70 tests passing, 85% coverage.
 
-**Agents:** Sieve → Flash (mock) → Command → Verdict
+### Recent Milestones
+- ✅ **Phase 2.5** - Structured JSON logging + UI/UX bug fixes (issues #5-8)
+- ✅ **Phase 2** - Complete agent suite (Shield, Sensor, Vault, Probe, Aura, Parser)
+- ✅ **Phase 1** - Core 4-agent MVP with conversational intelligence
+- ✅ **Phase 0** - Design and technical specification
 
-**Delivered:**
-- ✅ LangGraph orchestration with conditional retry
-- ✅ OpenRouter integration (gpt-4o / gpt-4o-mini)  
-- ✅ Streamlit chat interface with session tracking
-- ✅ Sliding window context (10 turns)
-- ✅ Detail level detection (BRIEF/DETAILED/COMPREHENSIVE)
-- ✅ Truncation handling with auto-retry
-- ✅ Real-time agent visualization with st.status
-- ✅ 23 tests passing, 87% coverage
+### Next Up
+- 📋 **Phase 3** - The Ledger (persistent memory with SQLite + ChromaDB)
+- 📋 **Phase 4** - Production readiness (Docker deployment, comprehensive testing)
+- 📋 **Phase 5** - Advanced features (memory consolidation, caching, plugins)
 
-### ✅ Phase 1.5: Agent Visualization (COMPLETE - 2026-04-09)
-**Delivered:**
-- ✅ Live progress display using LangGraph's astream()
-- ✅ Agent icons and descriptions in UI
-- ✅ Foundation for parallel agent visualization
-
-### ✅ Phase 2: Complete Agent Suite (COMPLETE - 2026-04-11)
-**Goal:** All 10 agents implemented with full personality system
-
-#### ✅ Wave 1: Shield + Sensor (COMPLETE - 2026-04-10)
-- ✅ **Shield agent** - Two-pass safety validation (input + output)
-- ✅ **Sensor agent** - Mood detection and P(tangent) calculation
-- ✅ Parallel execution (Sieve + Sensor run concurrently)
-- ✅ Metadata sidebar panel (mood, P(tangent), detail level, safety profile)
-- ✅ P(tangent) slider integration
-- ✅ Sieve expansion continuation pattern detection
-- ✅ 43 tests passing, 87% coverage
-
-#### ✅ Wave 2: Vault + Probe (COMPLETE - 2026-04-11)
-- ✅ **Vault agent** - Relational database queries (mock for Phase 2)
-- ✅ **Probe agent** - Logic validation with veto power
-- ✅ Conditional routing (Probe → retry OR Aura OR Verdict)
-- ✅ Mood-aware validation (strict with HURRIED, lenient with JOVIAL)
-- ✅ 62 tests passing, 85% coverage
-
-#### ✅ Wave 3: Aura + Parser (COMPLETE - 2026-04-11)
-- ✅ **Aura agent** - Narrative enhancement (activates at P(tangent) ≥ 0.7)
-- ✅ **Parser agent** - Memory extraction with atomic rewriting
-- ✅ 6 memory types with tags and importance scores
-- ✅ Extracted memories displayed in Debug Info panel
-- ✅ Fixed state propagation bug (memories_count in SwarmState)
-- ✅ 70 tests passing, 85% coverage
-
-### ✅ Phase 2.5: Infrastructure & Bug Fixes (COMPLETE - 2026-04-15)
-**Goal:** Production-ready logging and UI polish
-
-**UI/UX Fixes ([Issues #5-7](https://github.com/deversmann/black-box/issues)):**
-- ✅ Fixed metadata panel one-turn delay issue
-- ✅ Fixed state accumulation bug (Parser overwrote Sensor's mood)
-- ✅ Moved status bubbles to appear before responses
-- ✅ Made status bubbles persistent in chat history
-- ✅ Enhanced agent status messages (full Probe reasoning, Verdict failure details)
-
-**Logging System ([Issue #8](https://github.com/deversmann/black-box/issues/8)):**
-- ✅ **Structured JSON logging** with JSONFormatter
-- ✅ **Agent execution timing** (automatic via base class wrapper)
-- ✅ **API call logging** (latency, tokens, retries, backoff delays)
-- ✅ **Orchestrator flow logging** (routing decisions, retries)
-- ✅ **Log rotation** (10MB files, 5 backups = ~50MB max)
-- ✅ **Sensitive data redaction** (API keys, passwords, tokens)
-- ✅ **<2% performance overhead** on typical execution times
-- ✅ **Queryable logs** with jq (find errors, calculate averages, trace sessions)
-
-**Log Files:**
-- Logs written to `./logs/swarm.log` in structured JSON format
-- Each log entry includes: timestamp, level, logger, event_type, data, correlation_id
-
-**Example log queries:**
-```bash
-# View all logs
-jq '.' logs/swarm.log
-
-# Find slow agents (>1s execution time)
-jq 'select(.event_type == "agent_execution_complete" and .data.duration_ms > 1000)' logs/swarm.log
-
-# Calculate average API latency
-jq -s 'map(select(.event_type == "api_call_complete")) | map(.data.latency_ms) | add/length' logs/swarm.log
-
-# Trace a specific session
-jq --arg session "session_20260415_103045" 'select(.correlation_id == $session)' logs/swarm.log
-```
-
-### 📋 Phase 3: The Ledger (NEXT - [Milestone](https://github.com/deversmann/black-box/milestone/3))
-Persistent memory with semantic search and cooldown filter
-
-**Planned Features:**
-- SQLite database schema for relational memory storage
-- ChromaDB vector store for semantic similarity search
-- Flash agent real memory retrieval (replace mock)
-- Parser agent write to database
-- Cooldown filter (24hr default to prevent repetition)
-- Memory consolidation and importance decay
-
-### 📋 Phase 4: Production Readiness ([Milestone](https://github.com/deversmann/black-box/milestone/4))
-Testing, monitoring, Docker deployment, documentation
-
-**Planned Features:**
-- Comprehensive integration tests
-- LangGraph DAG visualization for execution flow display
-- Application-wide logging system
-- Docker + Docker Compose deployment
-- CI/CD pipeline
-- Performance monitoring and metrics
-
-### 📋 Phase 5: Advanced Features ([Milestone](https://github.com/deversmann/black-box/milestone/5))
-Memory consolidation, caching, plugin system, preference learning
-
-**Planned Features:**
-- Advanced memory consolidation strategies
-- Response caching for common queries
-- Plugin system for custom agents
-- Adaptive preference learning
-- Multi-user support
+**Detailed roadmap:** [docs/STATUS.md](docs/STATUS.md)  
+**GitHub milestones:** https://github.com/deversmann/black-box/milestones
 
 ## Quick Start
 
 ### Prerequisites
 
 - Python 3.11 or higher
-- OpenRouter API key ([get one here](https://openrouter.ai))
-- Poetry or uv for dependency management
+- OpenRouter API key ([get one here](https://openrouter.ai/keys))
 
 ### Installation
 
@@ -237,12 +129,18 @@ poetry install
 # Copy environment template
 cp .env.example .env
 # Edit .env and add your OPENROUTER_API_KEY
-
-# Run the Streamlit UI
-streamlit run frontend/app.py
 ```
 
-### Running Tests
+### Run
+
+```bash
+# Start the Streamlit UI
+streamlit run frontend/app.py
+
+# The app will open at http://localhost:8501
+```
+
+### Test
 
 ```bash
 # Run all tests
@@ -250,21 +148,9 @@ pytest
 
 # Run with coverage
 pytest --cov=blackbox --cov-report=html
-
-# Run specific test file
-pytest tests/test_agents/test_sieve.py
 ```
 
-### Docker (Future)
-
-```bash
-# Start the entire stack
-docker-compose up
-
-# Access the UI at http://localhost:8501
-# API at http://localhost:8000
-# Metrics at http://localhost:9090
-```
+For detailed setup and troubleshooting, see [docs/guides/CONFIGURATION.md](docs/guides/CONFIGURATION.md).
 
 ## Configuration
 
@@ -291,26 +177,37 @@ safety:
   default_profile: "balanced"  # strict, balanced, experimental
 ```
 
+See [docs/guides/CONFIGURATION.md](docs/guides/CONFIGURATION.md) for complete configuration reference.
+
 ## Project Structure
 
 ```
 /black-box/
-├── SPEC.md                   # Comprehensive technical specification
 ├── README.md                 # This file
 ├── LICENSE                   # MIT License
 ├── config/                   # Configuration files
 ├── src/blackbox/
-│   ├── core/                 # Base abstractions (Agent, Orchestrator)
-│   ├── agents/               # 11 specialized agents
-│   ├── db/                   # Memory system (Ledger)
-│   ├── models/               # LLM client
+│   ├── core/                 # Base abstractions (Agent, Orchestrator, Logging)
+│   ├── agents/               # 10 specialized agents
+│   ├── db/                   # Memory system (The Ledger)
+│   ├── models/               # LLM client (OpenRouter)
 │   ├── plugins/              # Extensibility system
 │   ├── api/                  # FastAPI backend
 │   └── cli.py                # Admin CLI tools
 ├── frontend/                 # Streamlit UI
 ├── tests/                    # Comprehensive test suite
 ├── data/                     # Database and vector storage (gitignored)
-└── docs/                     # Additional documentation
+├── logs/                     # Structured JSON logs (gitignored)
+└── docs/                     # Documentation
+    ├── STATUS.md             # Project roadmap and current status
+    ├── architecture/         # Architecture documentation
+    │   ├── OVERVIEW.md       # System design philosophy
+    │   ├── AGENTS.md         # All 10 agent specifications
+    │   └── MEMORY.md         # Execution flow & The Ledger
+    └── guides/               # Development guides
+        ├── CONFIGURATION.md  # Tech stack & configuration
+        ├── DEVELOPMENT.md    # Core abstractions & testing
+        └── CHALLENGES.md     # Technical challenges & solutions
 ```
 
 ## Key Features in Detail
@@ -327,9 +224,22 @@ The **Sieve** agent distills your rambling questions into crisp intent signals, 
 The **Probe** agent acts as devil's advocate, vetoing responses that are logically incoherent or inappropriate given your mood.
 
 ### 📊 Observability
-- Structured JSON logging
-- Prometheus metrics (agent latency, memory hit rates, etc.)
-- LangGraph DAG visualization
+- Structured JSON logging with automatic redaction
+- Queryable logs with jq (agent timing, API latency, session tracing)
+- <2% performance overhead
+- Log rotation (10MB files, 5 backups)
+
+Example log queries:
+```bash
+# Find slow agents (>1s execution time)
+jq 'select(.event_type == "agent_execution_complete" and .data.duration_ms > 1000)' logs/swarm.log
+
+# Calculate average API latency
+jq -s 'map(select(.event_type == "api_call_complete")) | map(.data.latency_ms) | add/length' logs/swarm.log
+
+# Trace a specific session
+jq --arg session "session_id_here" 'select(.correlation_id == $session)' logs/swarm.log
+```
 
 ### 🔌 Extensibility
 - Plugin system for adding new capabilities (web search, code execution, etc.)
@@ -344,17 +254,9 @@ This is a personal project currently in early development. Contributions, ideas,
 
 Work is organized using GitHub Issues with milestones for each phase:
 
-- **[Phase 2: Complete Agent Suite](https://github.com/deversmann/black-box/milestone/2)** (In Progress)
-- **[Phase 3: The Ledger](https://github.com/deversmann/black-box/milestone/3)** (Planned)
+- **[Phase 3: The Ledger](https://github.com/deversmann/black-box/milestone/3)** (Next)
 - **[Phase 4: Production Readiness](https://github.com/deversmann/black-box/milestone/4)** (Planned)
 - **[Phase 5: Advanced Features](https://github.com/deversmann/black-box/milestone/5)** (Planned)
-
-**Labels:**
-- `phase-2-wave-1`, `phase-2-wave-2`, `phase-2-wave-3` - Phase 2 waves
-- `agent` - Agent-specific work
-- `ui/ux` - User interface and experience
-- `testing` - Test coverage and quality
-- `bug`, `enhancement`, `documentation` - Standard labels
 
 [View all open issues →](https://github.com/deversmann/black-box/issues)
 
@@ -374,36 +276,8 @@ pytest --cov=blackbox --cov-report=html
 ruff check src/
 
 # Format code
-black src/
+ruff format src/
 ```
-
-### Workflow
-
-1. Pick an issue from the [current milestone](https://github.com/deversmann/black-box/milestone/2)
-2. Create a feature branch: `git checkout -b feature/vault-agent`
-3. Implement with tests (target 80%+ coverage)
-4. Update CHANGELOG.md with your changes
-5. Commit with co-authorship: `Co-Authored-By: Your Name <email@example.com>`
-6. Submit a pull request
-
-## Roadmap & Vision
-
-**Short Term (Phase 1-3):**
-- Working MVP with core agents
-- Persistent memory system
-- Web chat interface
-
-**Medium Term (Phase 4-5):**
-- Production-ready deployment
-- Plugin system
-- Mobile app
-
-**Long Term:**
-- Multi-user support
-- Voice interface
-- Advanced preference learning
-- Self-hosted model support
-- Calendar, email, web search integration
 
 ## Architecture Decisions
 
@@ -433,34 +307,15 @@ Separation of concerns. Each agent is a specialist:
 - **High tangent (Aura active):** < 5 seconds
 - **Memory scale:** 10,000+ memories without degradation
 
-## Challenges & Solutions
-
-### 1. Atomic Memory Rewriting
-**Problem:** Parser must ensure memories are self-contained (no unresolved pronouns).
-
-**Solution:** Few-shot prompting + entity tracking + context injection
-
-### 2. Cooldown Filter Efficiency
-**Problem:** Track memory usage per session without slowing search.
-
-**Solution:** In-memory cache + DB index + background cleanup
-
-### 3. Threshold Tuning
-**Problem:** Similarity thresholds that work across query types.
-
-**Solution:** Dynamic adjustment based on P(tangent) + per-user calibration + A/B testing
-
-### 4. Latency Management
-**Problem:** 11 agents could be slow.
-
-**Solution:** Aggressive parallelization + model tiering + streaming + speculative execution
-
 ## Documentation
 
-- **[SPEC.md](SPEC.md)** - Comprehensive technical specification
-- **[docs/architecture.md](docs/architecture.md)** - Architecture deep dive *(coming soon)*
-- **[docs/agent-reference.md](docs/agent-reference.md)** - Per-agent documentation *(coming soon)*
-- **[docs/api-reference.md](docs/api-reference.md)** - API endpoints *(coming soon)*
+- **[docs/STATUS.md](docs/STATUS.md)** - Project roadmap and current status
+- **[docs/architecture/OVERVIEW.md](docs/architecture/OVERVIEW.md)** - System design philosophy
+- **[docs/architecture/AGENTS.md](docs/architecture/AGENTS.md)** - All 10 agent specifications
+- **[docs/architecture/MEMORY.md](docs/architecture/MEMORY.md)** - Execution flow & The Ledger
+- **[docs/guides/CONFIGURATION.md](docs/guides/CONFIGURATION.md)** - Tech stack & configuration
+- **[docs/guides/DEVELOPMENT.md](docs/guides/DEVELOPMENT.md)** - Core abstractions & testing
+- **[docs/guides/CHALLENGES.md](docs/guides/CHALLENGES.md)** - Technical challenges & solutions
 
 ## License
 
@@ -472,6 +327,4 @@ Inspired by the vision of AI assistants that truly learn and grow with their use
 
 ---
 
-**Status:** Phase 2 Wave 1 complete (Shield + Sensor). Wave 2 next (Vault + Probe).
-
-**Questions?** [Open an issue](https://github.com/deversmann/black-box/issues/new) or check the [milestone tracker](https://github.com/deversmann/black-box/milestone/2)!
+**Questions?** [Open an issue](https://github.com/deversmann/black-box/issues/new) or check the [documentation](docs/)!
