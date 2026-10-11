@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod +x /Users/deversma/Development/black-box/scripts/*.sh)",
+      "Bash(./scripts/setup.sh)",
+      "Bash(pytest tests/ -v)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(python -m pytest tests/unit/test_agents/test_sensor.py -v)",
+      "Bash(python -m pytest tests/integration/test_swarm_flow.py -v)",
+      "Bash(python -m pytest tests/ --tb=short)",
+      "Bash(python -m pytest tests/integration/test_swarm_flow.py::test_retry_on_validation_failure -v)",
+      "Bash(python -m pytest tests/ -q)",
+      "Bash(python -m pytest tests/unit/test_agents/test_verdict.py -v)",
+      "Bash(gh api:*)",
+      "Bash(gh label:*)",
+      "Bash(gh issue create --repo deversmann/black-box --title 'Add Vault agent \\(Librarian\\)' --milestone 2 --label phase-2-wave-2,agent,enhancement --body ':*)",
+      "Bash(gh issue:*)",
+      "Bash(python -m pytest tests/unit/test_agents/test_vault.py -v)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(python -m pytest tests/unit/test_agents/test_probe.py -v)"
+    ]
+  }
+}
